@@ -10,7 +10,9 @@ from .source import PointSource
 from .sphere import HealpixSphere
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler()) # Add other handlers if you're using this as a library
+# Add other handlers if you're using this as a library
+logger.addHandler(logging.NullHandler())
+
 
 class MultiSpotless(SpotlessBase):
 
@@ -27,7 +29,8 @@ class MultiSpotless(SpotlessBase):
 
         m_vis = self.model.model_vis(self.u_arr, self.v_arr, self.w_arr)
 
-        a_0, el_0, az_0, p0 = self.estimate_initial_point_source(self.vis_arr-m_vis)
+        a_0, el_0, az_0, p0 = self.estimate_initial_point_source(
+            self.vis_arr-m_vis)
 
         model_vect = self.model.to_vector()
         x0 = np.append(model_vect, [0.1, el_0, az_0])
@@ -41,12 +44,14 @@ class MultiSpotless(SpotlessBase):
         for b in src.get_bounds(d_el):
             bounds.append(b)
 
-        fmin = minimize(self.f_n, x0.flatten(), method='L-BFGS-B', bounds=bounds)
+        fmin = minimize(self.f_n, x0.flatten(),
+                        method='L-BFGS-B', bounds=bounds)
         p1 = fmin.fun
 
         self.model = Model.from_vector(fmin.x)
 
-        self.residual_vis = self.vis_arr - self.model.model_vis(self.u_arr, self.v_arr, self.w_arr)
+        self.residual_vis = self.vis_arr - \
+            self.model.model_vis(self.u_arr, self.v_arr, self.w_arr)
 
         return self.model, p1, p0
 
@@ -62,12 +67,12 @@ class MultiSpotless(SpotlessBase):
         logger.info("Reconstructing Image")
         sphere = HealpixSphere(nside)
         #healpix_map, visible_pixels, el_r, az_r, p2 = sphere.get_pixels()
-        
+
         max_u = np.max(self.u_arr)
         max_v = np.max(self.v_arr)
         max_w = np.max(self.w_arr)
-        
-        beam_width = np.radians(3.0) # TODO beamwidth is a function of u,v,w
+
+        beam_width = np.radians(3.0)  # TODO beamwidth is a function of u,v,w
 
         brightest_source = self.model.brightest()
         weakest_source = self.model.faintest()
@@ -84,20 +89,23 @@ class MultiSpotless(SpotlessBase):
 
         logger.info("Total Source power {}".format(total_source_power))
         # Smooth the map
-        model_pixel_map = hp.sphtfunc.smoothing(sphere.healpix_map, fwhm=beam_width, verbose=False)
+        model_pixel_map = hp.sphtfunc.smoothing(
+            sphere.healpix_map, fwhm=beam_width, verbose=False)
         # Scale the map so that the total pixel power is correct
-        model_pixel_map = np.sqrt(np.abs(model_pixel_map))*np.sqrt(len(sphere.visible_pixels))
+        model_pixel_map = np.sqrt(
+            np.abs(model_pixel_map))*np.sqrt(len(sphere.visible_pixels))
 
         # Get the power
-        model_map_power = SpotlessBase.power_from_pixels(model_pixel_map[sphere.visible_index])
-        logger.info("model_pixel_map_power {} {} {}".format(model_map_power, 
-                                                            total_source_power/model_map_power, 
+        model_map_power = SpotlessBase.power_from_pixels(
+            model_pixel_map[sphere.visible_index])
+        logger.info("model_pixel_map_power {} {} {}".format(model_map_power,
+                                                            total_source_power/model_map_power,
                                                             model_map_power / total_source_power))
 
         # Add the residual
         residual = self.image_visibilities(self.residual_vis, nside)
         sphere.visible_pixels += residual.visible_pixels
-        
+
         model_pixel_map[sphere.visible_index] += np.abs(sphere.visible_pixels)
 
         residual_power = self.power(self.residual_vis)
@@ -110,8 +118,7 @@ class MultiSpotless(SpotlessBase):
 
         sphere.healpix_map = model_pixel_map
         return sphere, model_map_power, residual_power
-        #return model_pixel_map, model_map_power, residual_power
-
+        # return model_pixel_map, model_map_power, residual_power
 
     def old_reconstruct(self, nside):
         logger.info("Reconstructing Image")
@@ -120,7 +127,7 @@ class MultiSpotless(SpotlessBase):
 
         t0 = time.time()
 
-        beam_width = np.radians(3.0) # TODO beamwidth is a function of u,v,w
+        beam_width = np.radians(3.0)  # TODO beamwidth is a function of u,v,w
 
         brightest_source = self.model.brightest()
         weakest_source = self.model.faintest()
@@ -135,7 +142,8 @@ class MultiSpotless(SpotlessBase):
             i = hp.ang2pix(nside, theta, phi)
             healpix_map[i] = a
 
-        healpix_map = hp.sphtfunc.smoothing(healpix_map, fwhm=beam_width, verbose=False)
+        healpix_map = hp.sphtfunc.smoothing(
+            healpix_map, fwhm=beam_width, verbose=False)
         healpix_map /= np.max(healpix_map)
 
         # Add the residual weighted so that its peak is equal to the weakest source

@@ -5,7 +5,7 @@ develop:
 	pip3 install -e .
 
 lint:
-	pylint --extension-pkg-whitelist=numpy --ignored-modules=numpy --extension-pkg-whitelist=astropy spotless
+	flake8 spotless --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 	
 test_upload:

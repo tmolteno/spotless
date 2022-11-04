@@ -6,10 +6,12 @@ from . import sphere
 # Copyright Tim Molteno 2017 tim@elec.ac.nz
 #
 
+
 class PointSource(object):
     '''
     A single point source in el,az co-ordinates
     '''
+
     def __init__(self, a, el, az):
         self.a = a
         self.el = el
@@ -23,9 +25,9 @@ class PointSource(object):
         ret["az"] = np.degrees(self.az)
         if (self.power is not None):
             ret["p"] = self.power
-            #return "{p:None, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.a, np.degrees(self.el), np.degrees(self.az))
-        #else:
-            #return "{p:{:03.2f}, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.power, self.a, np.degrees(self.el), np.degrees(self.az))
+            # return "{p:None, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.a, np.degrees(self.el), np.degrees(self.az))
+        # else:
+            # return "{p:{:03.2f}, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.power, self.a, np.degrees(self.el), np.degrees(self.az))
         return ret
 
     def __repr__(self):
@@ -41,13 +43,14 @@ class PointSource(object):
             is really just a correction because dl dm approaches zero at this point.
 
             The Smirnov papers on the RIME provide a formalism that is easier to derive algorithms for.
-            
+
             TODO: Use an antenna model (for the whole telescope initially, and then eventually for each antenna)
             to modify the source amplitude (self.a) and predict the visibilities from a low-elevation source.
         '''
         l, m, n = sphere.elaz2lmn(self.el, self.az)
 
-        vis = self.a*self.a*np.exp(-2*np.pi*1.0j*(u_arr*l + v_arr*m + w_arr*(n - 1.0)))
+        vis = self.a*self.a * \
+            np.exp(-2*np.pi*1.0j*(u_arr*l + v_arr*m + w_arr*(n - 1.0)))
         return vis
 
     def get_bounds(self, d_el):

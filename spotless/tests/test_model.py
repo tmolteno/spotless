@@ -29,7 +29,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(vect[0], 0.1)
         self.assertEqual(vect[-1], 0.4)
         self.assertEqual(vect.shape, (6,))
-        
+
     def test_to_from_vector(self):
         vect = self.spot.to_vector()
         spot2 = Model.from_vector(vect)

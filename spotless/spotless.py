@@ -38,15 +38,18 @@ from .source import PointSource
 from .sphere import HealpixSphere
 
 #import warnings
-#warnings.filterwarnings('error')
+# warnings.filterwarnings('error')
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler()) # Add other handlers if you're using this as a library
+# Add other handlers if you're using this as a library
+logger.addHandler(logging.NullHandler())
+
 
 def get_source_list(source_json, el_limit, jy_limit):
     src_list = []
     if source_json is not None:
-        src_list = elaz.from_json(source_json, el_limit=el_limit, jy_limit=jy_limit)
+        src_list = elaz.from_json(
+            source_json, el_limit=el_limit, jy_limit=jy_limit)
     return src_list
 
 
@@ -59,8 +62,8 @@ class SpotlessBase(object):
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
         self.working_nside = 2**6
-        
-        self.harmonics = {} # Temporary store for harmonics
+
+        self.harmonics = {}  # Temporary store for harmonics
 
     def get_harmonics(self, sphere):
         ''' Create the harmonics for this arrangement of sphere pixels
@@ -71,7 +74,7 @@ class SpotlessBase(object):
 
         n_arr_minus_1 = sphere.n - 1
         harmonic_list = []
-        p2j = 2*np.pi*1.0j / constants.L1_WAVELENGTH# This now returns in meters 
+        p2j = 2*np.pi*1.0j / constants.L1_WAVELENGTH  # This now returns in meters
         for u, v, w in zip(self.u_arr, self.v_arr, self.w_arr):
             harmonic = np.exp(p2j*(u*sphere.l + v*sphere.m + w*n_arr_minus_1))
             harmonic_list.append(harmonic)
@@ -103,14 +106,14 @@ class SpotlessBase(object):
         logger.info("Seconds elapsed {}".format(t1 - t0))
 
         sphere.set_visible_pixels(pixels)
-        
-        return sphere
 
+        return sphere
 
     def plot(self, plt, sphere, src_list, show_model):
         rot = (0, 90, 0)
-        plt.figure(figsize=(6,6))
-        hp.orthview(sphere.healpix_map, rot=rot, xsize=1000, cbar=True, half_sky=True, hold=True)
+        plt.figure(figsize=(6, 6))
+        hp.orthview(sphere.healpix_map, rot=rot, xsize=1000,
+                    cbar=True, half_sky=True, hold=True)
         #hp.mollview(healpix_map, rot=rot, xsize=3000, cbar=False)
         hp.graticule(verbose=False)
 
@@ -127,9 +130,9 @@ class SpotlessBase(object):
         self.plot(plt, sphere, src_list, show_model)
 
     def beam(self, plt, nside):
-        sphere = self.image_visibilities(np.ones_like(self.residual_vis), nside)
+        sphere = self.image_visibilities(
+            np.ones_like(self.residual_vis), nside)
         self.plot(plt, sphere, src_list=None, show_model=False)
-
 
     def deconvolute(self):
         for i in range(25):
@@ -149,14 +152,14 @@ class SpotlessBase(object):
         '''
         power = np.sum(in_pixels**2)/len(in_pixels)
         return power
-    
+
     @staticmethod
     def scale_to_power(image_pixels, desired_power):
         ''' Scale the image_pixels so that the pixel_power is in fact
             equal to the desired_power. This is only used for the 
             reconstruction process where we use a synthesized beam from
             each source (as the beam profile changes with angle in the sky 
-            
+
             desired_pwer = np.sum((scaling*inpixels)**2)/N
             N*desired_power = np.sum(scaling**2 * inpixels**2)
             N*desired_power = scaling**2 * np.sum(inpixels**2)
@@ -207,7 +210,6 @@ class SpotlessBase(object):
         '''
         return src.get_vis(self.u_arr, self.v_arr, self.w_arr)
 
-
     def reconstruct_direct(self, nside):
         ''' Reconstruct the image 
 
@@ -240,7 +242,8 @@ class SpotlessBase(object):
             cutoff = np.max(smap)/2
             low_value_flags = smap < cutoff
             smap[low_value_flags] = 0
-            sphere.add_visible_pixels(SpotlessBase.scale_to_power(smap, src.power))
+            sphere.add_visible_pixels(
+                SpotlessBase.scale_to_power(smap, src.power))
 
             total_source_power += src.power
 
@@ -272,12 +275,10 @@ class SpotlessBase(object):
         return sphere, model_map_power, residual_power
 
 
-
 class Spotless(SpotlessBase):
 
     def __init__(self, cal_vis):
         super(Spotless, self).__init__(cal_vis)
-
 
     def step(self):
         '''
@@ -286,7 +287,8 @@ class Spotless(SpotlessBase):
             is conserved.
         '''
         d_el = np.radians(1.5)
-        a_0, el_0, az_0, p0 = self.estimate_initial_point_source(self.residual_vis)
+        a_0, el_0, az_0, p0 = self.estimate_initial_point_source(
+            self.residual_vis)
         x0 = [0.1, el_0, az_0]
         logger.info(f"x0 {x0}")
 
@@ -323,12 +325,12 @@ class Spotless(SpotlessBase):
 
     def reconstruct(self, nside):
         logger.info("Reconstructing Image")
-        
+
         max_u = np.max(self.u_arr)
         max_v = np.max(self.v_arr)
         max_w = np.max(self.w_arr)
-        
-        beam_width = np.radians(3.0) # TODO beamwidth is a function of u,v,w
+
+        beam_width = np.radians(3.0)  # TODO beamwidth is a function of u,v,w
 
         brightest_source = self.model.brightest()
         weakest_source = self.model.faintest()
@@ -345,20 +347,23 @@ class Spotless(SpotlessBase):
 
         logger.info("Total Source power {}".format(total_source_power))
         # Smooth the map
-        model_pixel_map = hp.sphtfunc.smoothing(sphere.healpix_map, fwhm=beam_width, verbose=False)
+        model_pixel_map = hp.sphtfunc.smoothing(
+            sphere.healpix_map, fwhm=beam_width, verbose=False)
         # Scale the map so that the total pixel power is correct
-        model_pixel_map = np.sqrt(np.abs(model_pixel_map))*np.sqrt(len(sphere.visible_pixels))
+        model_pixel_map = np.sqrt(
+            np.abs(model_pixel_map))*np.sqrt(len(sphere.visible_pixels))
 
         # Get the power
-        model_map_power = Spotless.power_from_pixels(model_pixel_map[sphere.visible_index])
-        logger.info("model_pixel_map_power {} {} {}".format(model_map_power, 
-                                                            total_source_power/model_map_power, 
+        model_map_power = Spotless.power_from_pixels(
+            model_pixel_map[sphere.visible_index])
+        logger.info("model_pixel_map_power {} {} {}".format(model_map_power,
+                                                            total_source_power/model_map_power,
                                                             model_map_power / total_source_power))
 
         # Add the residual
         residual = self.image_visibilities(self.residual_vis, nside)
         sphere.visible_pixels += residual.visible_pixels
-        
+
         model_pixel_map[sphere.visible_index] += np.abs(sphere.visible_pixels)
 
         residual_power = self.power(self.residual_vis)
@@ -372,5 +377,3 @@ class Spotless(SpotlessBase):
 
         sphere.healpix_map = model_pixel_map
         return sphere, model_map_power, residual_power
-
-

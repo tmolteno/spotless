@@ -6,17 +6,21 @@ import numpy as np
 import healpy as hp
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler()) # Add other handlers if you're using this as a library
+# Add other handlers if you're using this as a library
+logger.addHandler(logging.NullHandler())
+
 
 def elaz2lmn(el_r, az_r):
     l = np.sin(az_r)*np.cos(el_r)
     m = np.cos(az_r)*np.cos(el_r)
-    n = np.sin(el_r) # Often written in this weird way... np.sqrt(1.0 - l**2 - m**2)
+    # Often written in this weird way... np.sqrt(1.0 - l**2 - m**2)
+    n = np.sin(el_r)
     return l, m, n
 
 
 class Sphere(object):
     ''' A pixelated Sphere '''
+
     def __init__(self, el_r, az_r):
         self.el_r = el_r
         self.az_r = az_r
@@ -36,7 +40,7 @@ class Sphere(object):
 
 class HealpixSphere(Sphere):
     ''' A healpix Sphere '''
-    
+
     def __init__(self, nside):
         self.nside = nside
         self.npix = hp.nside2npix(self.nside)
@@ -48,12 +52,14 @@ class HealpixSphere(Sphere):
         # Find all the pixels above the horizon
         self.visible_index = np.flatnonzero(theta < np.pi/2)
 
-        self.healpix_map = np.zeros(self.npix) # + hp.UNSEEN
-        self.visible_pixels = np.zeros_like(self.visible_index, dtype=np.complex64)
-        el_r, az_r = self.hp2elaz(theta[self.visible_index], phi[self.visible_index])
+        self.healpix_map = np.zeros(self.npix)  # + hp.UNSEEN
+        self.visible_pixels = np.zeros_like(
+            self.visible_index, dtype=np.complex64)
+        el_r, az_r = self.hp2elaz(
+            theta[self.visible_index], phi[self.visible_index])
         logger.info(f"self.visible_index {self.visible_index}")
         logger.info(f"theta {theta[self.visible_index]}")
-        
+
         super(HealpixSphere, self).__init__(el_r, az_r)
 
     @staticmethod
@@ -74,11 +80,11 @@ class HealpixSphere(Sphere):
 
     def plot_dot(self, el, az):
         theta, phi = self.elaz2hp(el, az)
-        hp.projplot(theta, phi, 'k.', rot=(0,90,0))  #
+        hp.projplot(theta, phi, 'k.', rot=(0, 90, 0))  #
 
     def plot_x(self, el, az):
         theta, phi = self.elaz2hp(el, az)
-        hp.projplot(theta, phi, 'rx', rot=(0,90,180))  #
+        hp.projplot(theta, phi, 'rx', rot=(0, 90, 180))  #
 
     def set_visible_pixels(self, pix):
         self.healpix_map[self.visible_index] = pix
@@ -97,7 +103,7 @@ class HealpixSphere(Sphere):
         az_0 = self.az_r[i]
 
         return a_0, el_0, az_0
-    
+
     def power_from_pixels(self):
         _pixels = self.healpix_map[self.visible_index]
         #super(HealpixSphere, self).power_from_pixels(_pixels)

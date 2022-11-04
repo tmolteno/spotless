@@ -8,6 +8,7 @@ import json
 
 from .source import PointSource
 
+
 class Model(object):
 
     def __init__(self):
@@ -69,5 +70,5 @@ class Model(object):
         bits = np.split(vect, len(vect)/3)
         for src in bits:
             a, el, az = src
-            ret.add_source(PointSource(a,el,az))
+            ret.add_source(PointSource(a, el, az))
         return ret
