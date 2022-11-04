@@ -3,6 +3,8 @@
 # License GPLv3
 #
 
+import time
+
 import numpy as np
 import logging
 import healpy as hp
@@ -71,7 +73,7 @@ class MultiSpotless(SpotlessBase):
     def reconstruct(self, nside):
         logger.info("Reconstructing Image")
         sphere = HealpixSphere(nside)
-        #healpix_map, visible_pixels, el_r, az_r, p2 = sphere.get_pixels()
+        # healpix_map, visible_pixels, el_r, az_r, p2 = sphere.get_pixels()
 
         max_u = np.max(self.u_arr)
         max_v = np.max(self.v_arr)
@@ -125,6 +127,7 @@ class MultiSpotless(SpotlessBase):
         return sphere, model_map_power, residual_power
         # return model_pixel_map, model_map_power, residual_power
 
+    '''
     def old_reconstruct(self, nside):
         logger.info("Reconstructing Image")
         sphere = HealpixSphere(nside)
@@ -143,7 +146,7 @@ class MultiSpotless(SpotlessBase):
         for src in self.model:
             a = src.a/weakest_source.a
 
-            theta, phi = elaz2hp(src.el, src.az)
+            theta, phi = sphere.elaz2hp(src.el, src.az)
             i = hp.ang2pix(nside, theta, phi)
             healpix_map[i] = a
 
@@ -161,3 +164,4 @@ class MultiSpotless(SpotlessBase):
         logger.info("Residual Amplitude {}".format(np.max(residual)))
 
         return healpix_map, model_map_power, residual_power
+    '''

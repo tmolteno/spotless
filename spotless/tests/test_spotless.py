@@ -22,14 +22,14 @@ logger = logging.getLogger(__name__)
 # Add a null handler so logs can go somewhere
 logger.addHandler(logging.NullHandler())
 
+TEST_JSON='test_data/test_data.json'
 
 class TestSpotless(unittest.TestCase):
 
     def setUp(self):
         # Load data from a JSON file
-        fname = 'test_data.json'
-        logger.info("Getting Data from file: {}".format(fname))
-        with open(fname, 'r') as json_file:
+        logger.info(f"Getting Data from file: {TEST_JSON}")
+        with open(TEST_JSON, 'r') as json_file:
             calib_info = json.load(json_file)
 
         info = calib_info['info']
