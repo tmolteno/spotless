@@ -17,10 +17,13 @@
 
 import logging
 import time
+import disko
+
 
 from scipy.optimize import minimize
 import numpy as np
 import healpy as hp
+
 
 from tart.imaging import elaz
 from tart.util import constants
@@ -64,7 +67,8 @@ class SpotlessBase(object):
 
         n_arr_minus_1 = sphere.n - 1
         harmonic_list = []
-        p2j = 2*np.pi*1.0j * constants.L1_FREQ  # This now assumes u,v,w in meters
+        p2j = disko.jomega(constants.L1_FREQ)
+        
         for u, v, w in zip(self.u_arr, self.v_arr, self.w_arr):
             harmonic = np.exp(p2j*(u*sphere.l + v*sphere.m + w*n_arr_minus_1))
             harmonic_list.append(harmonic)

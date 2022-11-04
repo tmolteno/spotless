@@ -3,6 +3,8 @@
 # License GPLv3
 #
 
+import disko
+
 import numpy as np
 import json
 from . import sphere
@@ -52,9 +54,9 @@ class PointSource(object):
         '''
         l, m, n = sphere.elaz2lmn(self.el, self.az)
 
-        j2p = 2*np.pi*1.0j * constants.L1_FREQ
+        p2j = disko.jomega(constants.L1_FREQ)
         vis = self.a*self.a * \
-            np.exp(-j2p*(u_arr*l + v_arr*m + w_arr*(n - 1.0)))
+            np.exp(-p2j*(u_arr*l + v_arr*m + w_arr*(n - 1.0)))
         return vis
 
     def get_bounds(self, d_el):
