@@ -1,10 +1,11 @@
+#
+# Copyright Tim Molteno 2017-2022 tim@elec.ac.nz
+# License GPLv3
+#
+
 import numpy as np
 import json
 from . import sphere
-
-#
-# Copyright Tim Molteno 2017 tim@elec.ac.nz
-#
 
 
 class PointSource(object):

@@ -1,3 +1,8 @@
+#
+# Copyright Tim Molteno 2017-2022 tim@elec.ac.nz
+# License GPLv3
+#
+
 import numpy as np
 import logging
 import healpy as hp

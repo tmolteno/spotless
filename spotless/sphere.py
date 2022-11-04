@@ -1,6 +1,10 @@
-# Classes to hold pixelated spheres
-# Tim Molteno tim@elec.ac.nz 2017-2022
 #
+# Copyright Tim Molteno 2017-2022 tim@elec.ac.nz
+# License GPLv3
+#
+# Classes to hold pixelated spheres
+#
+
 import logging
 import numpy as np
 import healpy as hp
