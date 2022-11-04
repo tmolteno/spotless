@@ -48,7 +48,7 @@ class SpotlessBase(object):
 
         self.vis_arr, baselines = cal_vis.get_all_visibility()
         self.u_arr, self.v_arr, self.w_arr = cal_vis.get_all_uvw()
-
+        logger.info(f"Max u: {np.max(self.u_arr)}")
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
         self.working_nside = 2**6
@@ -64,7 +64,7 @@ class SpotlessBase(object):
 
         n_arr_minus_1 = sphere.n - 1
         harmonic_list = []
-        p2j = 2*np.pi*1.0j / constants.L1_WAVELENGTH  # This now returns in meters
+        p2j = 2*np.pi*1.0j * constants.L1_FREQ  # This now assumes u,v,w in meters
         for u, v, w in zip(self.u_arr, self.v_arr, self.w_arr):
             harmonic = np.exp(p2j*(u*sphere.l + v*sphere.m + w*n_arr_minus_1))
             harmonic_list.append(harmonic)
