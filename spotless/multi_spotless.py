@@ -3,8 +3,6 @@
 # License GPLv3
 #
 
-import time
-
 import numpy as np
 import logging
 import healpy as hp

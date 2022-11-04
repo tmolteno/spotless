@@ -28,7 +28,8 @@ class PointSource(object):
             ret["p"] = self.power
             # return "{p:None, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.a, np.degrees(self.el), np.degrees(self.az))
         # else:
-            # return "{p:{:03.2f}, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.power, self.a, np.degrees(self.el), np.degrees(self.az))
+            # return "{p:{:03.2f}, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.power,
+            # self.a, np.degrees(self.el), np.degrees(self.az))
         return ret
 
     def __repr__(self):
@@ -38,8 +39,8 @@ class PointSource(object):
         '''
             Generate a list of visibilities from the source at u,v,w points
             See "The non-coplanar baselines effect in radio interferometry: The W-projection algorithm"
-            by Tim Cornwell. Note that this paper chooses direction cosines (l,m) as its basis for the 
-            integral and the image coordinates. It introduces a factor sqrt(1 - l**2 - m**2) which 
+            by Tim Cornwell. Note that this paper chooses direction cosines (l,m) as its basis for the
+            integral and the image coordinates. It introduces a factor sqrt(1 - l**2 - m**2) which
             implies that visibilities are infinite when the object is on the horizon (l or m ==1). This
             is really just a correction because dl dm approaches zero at this point.
 

@@ -110,6 +110,6 @@ class HealpixSphere(Sphere):
 
     def power_from_pixels(self):
         _pixels = self.healpix_map[self.visible_index]
-        #super(HealpixSphere, self).power_from_pixels(_pixels)
+        # super(HealpixSphere, self).power_from_pixels(_pixels)
         power = np.sum(_pixels**2)/len(_pixels)
         return power

@@ -9,7 +9,6 @@ import json
 
 import numpy as np
 
-#from spotless import sphere
 from spotless import source
 from spotless import Spotless
 
@@ -23,6 +22,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 TEST_JSON='test_data/test_data.json'
+
 
 class TestSpotless(unittest.TestCase):
 

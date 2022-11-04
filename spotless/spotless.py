@@ -14,16 +14,9 @@
 #
 # Tim Molteno 2017-2022 tim@elec.ac.nz
 #
-import os
-import argparse
-import sys
-import threading
-import datetime
-import json
+
 import logging
 import time
-
-from copy import deepcopy
 
 from scipy.optimize import minimize
 import numpy as np
@@ -36,9 +29,6 @@ from .model import Model
 from .source import PointSource
 
 from .sphere import HealpixSphere
-
-#import warnings
-# warnings.filterwarnings('error')
 
 logger = logging.getLogger(__name__)
 # Add other handlers if you're using this as a library
@@ -114,7 +104,7 @@ class SpotlessBase(object):
         plt.figure(figsize=(6, 6))
         hp.orthview(sphere.healpix_map, rot=rot, xsize=1000,
                     cbar=True, half_sky=True, hold=True)
-        #hp.mollview(healpix_map, rot=rot, xsize=3000, cbar=False)
+        # hp.mollview(healpix_map, rot=rot, xsize=3000, cbar=False)
         hp.graticule(verbose=False)
 
         if show_model:
@@ -144,7 +134,7 @@ class SpotlessBase(object):
         logger.info("Deconvolution Complete")
 
     def step(self):
-        raise NotImplemented
+        raise NotImplementedError("step is not implemented in the base class")
 
     @staticmethod
     def power_from_pixels(in_pixels):
@@ -156,9 +146,9 @@ class SpotlessBase(object):
     @staticmethod
     def scale_to_power(image_pixels, desired_power):
         ''' Scale the image_pixels so that the pixel_power is in fact
-            equal to the desired_power. This is only used for the 
+            equal to the desired_power. This is only used for the
             reconstruction process where we use a synthesized beam from
-            each source (as the beam profile changes with angle in the sky 
+            each source (as the beam profile changes with angle in the sky
 
             desired_pwer = np.sum((scaling*inpixels)**2)/N
             N*desired_power = np.sum(scaling**2 * inpixels**2)
@@ -211,9 +201,9 @@ class SpotlessBase(object):
         return src.get_vis(self.u_arr, self.v_arr, self.w_arr)
 
     def reconstruct_direct(self, nside):
-        ''' Reconstruct the image 
+        ''' Reconstruct the image
 
-            Use a thresholded beam from each source as the reconstruction beam. This 
+            Use a thresholded beam from each source as the reconstruction beam. This
             works with non-planar antenna arrays (in which case the beam from each source
             will depend on direction
         '''
