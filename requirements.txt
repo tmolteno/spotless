@@ -1,0 +1,6 @@
+numpy>=1.21 
+matplotlib>=3.5
+healpy>=1.15
+astropy>=4.3
+tart>=1.1.2b2
+disko>=1.1.2b2

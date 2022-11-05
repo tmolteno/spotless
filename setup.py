@@ -10,7 +10,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(name='spotless',
-    version='0.3.4',
+    version='0.4.0',
     description='Grid-Free Deconvolution Directly From Visibilities',
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -20,7 +20,7 @@ setup(name='spotless',
     tests_require=['nose'],
     author_email='tim@elec.ac.nz',
     license='GPLv3',
-    install_requires=['numpy', 'matplotlib', 'healpy', 'astropy', 'tart'],
+    install_requires=['numpy', 'matplotlib', 'healpy', 'astropy', 'tart', 'disko'],
     packages=['spotless'],
     scripts=['bin/spotless', 'bin/spotless_calibrate', 'bin/gridless'],
     classifiers=[

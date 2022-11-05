@@ -52,6 +52,7 @@ in which case changes to the source-code will be immediately available to projec
 
 ## Changes
 
+* 0.4.0 Move to github repository. Add to pypi. Use disko for utility functions.
 * 0.3.0 Update to python3
 * 0.3.3 Add a gridless binary to plot a GRIDLESS imaging, add a PDF export option
 * 0.3.4 Fix bitrot in multispotless.

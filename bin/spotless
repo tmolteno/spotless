@@ -13,6 +13,11 @@ import matplotlib.pyplot as plt
 import argparse
 import json
 import logging
+import spotless
+import sys
+import setuptools
+import pkg_resources  # part of setuptools
+
 from copy import deepcopy
 
 import numpy as np
@@ -71,6 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('--PNG', action="store_true", help="Generate a PNG format image")
     parser.add_argument('--PDF', action="store_true", help="Generate a PDF format image")
     parser.add_argument('--show-sources', action="store_true", help="Show known sources on images (only works on PNG).")
+    parser.add_argument('--version', action="store_true", help="Display the current version")
     parser.add_argument('--show-model', action="store_true", help="Show the location of the model sources.")
 
     source_json = None
@@ -92,6 +98,12 @@ if __name__ == '__main__':
     # add ch to logger
     logger.addHandler(ch)
     
+    if ARGS.version:
+        version = pkg_resources.require("spotless")[0].version
+        print(f"spotless: Version {version}")
+        print("          (c) 2022 Tim Molteno")
+        sys.exit(0)
+        
     if ARGS.file:
         logger.info("Getting Data from file: {}".format(ARGS.file))
         # Load data from a JSON file
