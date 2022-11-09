@@ -164,7 +164,7 @@ if __name__ == '__main__':
     time_repr = "{:%Y_%m_%d_%H_%M_%S_%Z}".format(timestamp)
 
     # Processing
-    should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF
+    should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.SVG
     
     disko = DiSkO.from_cal_vis(cv)
     
