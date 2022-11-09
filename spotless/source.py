@@ -22,6 +22,11 @@ class PointSource(object):
         self.az = az
         self.power = None   # The power will be set after fitting
 
+    def get_power(self):
+        if self.power is None:
+            return self.a
+        return self.power
+    
     def to_dict(self):
         ret = {}
         ret["a"] = self.a
@@ -60,7 +65,7 @@ class PointSource(object):
         return vis
 
     def get_bounds(self, d_el):
-        d_az = d_el/(np.cos(self.el) + 0.001)
+        d_az = np.abs(d_el/(np.cos(self.el) + 0.001))
         return [(0.0, 1.0),
                 (max(self.el - d_el, 0), min(self.el + d_el, np.pi/2)),
                 (self.az - d_az, self.az + d_az)]

@@ -9,6 +9,8 @@ import logging
 import numpy as np
 import healpy as hp
 
+from disko import HealpixSphere
+
 logger = logging.getLogger(__name__)
 # Add other handlers if you're using this as a library
 logger.addHandler(logging.NullHandler())
@@ -22,94 +24,69 @@ def elaz2lmn(el_r, az_r):
     return l, m, n
 
 
-class Sphere(object):
-    ''' A pixelated Sphere '''
+# class Sphere(object):
+#     ''' A pixelated Sphere '''
+# 
+#     def __init__(self, el_r, az_r):
+#         self.el_r = el_r
+#         self.az_r = az_r
+# 
+#         self.l, self.m, self.n = elaz2lmn(self.el_r, self.az_r)
+# 
+#     def get_lmn(self):
+#         return self.l, self.m, self.n
+# 
+#     def index_of(self, el, az):
+#         raise NotImplementedError("Use a subclass")
+# 
+#     @staticmethod
+#     def power_from_pixels(_pixels):
+#         return np.sum(_pixels**2)/len(_pixels)
 
-    def __init__(self, el_r, az_r):
-        self.el_r = el_r
-        self.az_r = az_r
 
-        self.l, self.m, self.n = elaz2lmn(self.el_r, self.az_r)
+# class SpotlessSphere(HealpixSubSphere):
+#     ''' A healpix Sphere '''
+# 
+#     @classmethod
+#     def from_resolution(
+#         cls, res_arcmin=None, nside=None, theta=0.0, phi=0.0, radius_rad=0.0
+#     ):
+#         super(SpotlessSphere, cls).from_resolution(res_arcmin, nside, theta, phi, radius_rad)
+# 
+#     @staticmethod
+#     def hp2elaz(theta, phi):
+#         el = np.pi/2 - theta
+#         az = -phi
+#         return el, az
+# 
+#     @staticmethod
+#     def elaz2hp(el, az):
+#         theta = np.pi/2 - el
+#         phi = -az
+#         return theta, phi
+# 
+#     def plot_dot(self, el, az):
+#         theta, phi = self.elaz2hp(el, az)
+#         hp.projplot(theta, phi, 'k.', rot=(0, 90, 0))  #
+# 
+#     def plot_x(self, el, az):
+#         theta, phi = self.elaz2hp(el, az)
+#         hp.projplot(theta, phi, 'rx', rot=(0, 90, 180))  #
+# 
+#     def add_pixels(self, pix):
+#         self.pixels += pix
+# 
+def rms(sphere):
+    return np.sqrt(np.mean(sphere.pixels**2))
 
-    def get_lmn(self):
-        return self.l, self.m, self.n
+def get_peak(sphere):
+    i = np.argmax(sphere.pixels)
+    a_0 = sphere.pixels[i]
+    el_0 = sphere.el_r[i]
+    az_0 = sphere.az_r[i]
 
-    def index_of(self, el, az):
-        raise NotImplementedError("Use a subclass")
-
-    @staticmethod
-    def power_from_pixels(_pixels):
-        return np.sum(_pixels**2)/len(_pixels)
-
-
-class HealpixSphere(Sphere):
-    ''' A healpix Sphere '''
-
-    def __init__(self, nside):
-        self.nside = nside
-        self.npix = hp.nside2npix(self.nside)
-
-        all_pixels = np.arange(self.npix)
-        theta, phi = hp.pix2ang(nside, all_pixels)
-        logger.info(f"theta {theta}")
-
-        # Find all the pixels above the horizon
-        self.visible_index = np.flatnonzero(theta < np.pi/2)
-
-        self.healpix_map = np.zeros(self.npix)  # + hp.UNSEEN
-        self.visible_pixels = np.zeros_like(
-            self.visible_index, dtype=np.complex64)
-        el_r, az_r = self.hp2elaz(
-            theta[self.visible_index], phi[self.visible_index])
-        logger.info(f"self.visible_index {self.visible_index}")
-        logger.info(f"theta {theta[self.visible_index]}")
-
-        super(HealpixSphere, self).__init__(el_r, az_r)
-
-    @staticmethod
-    def hp2elaz(theta, phi):
-        el = np.pi/2 - theta
-        az = -phi
-        return el, az
-
-    @staticmethod
-    def elaz2hp(el, az):
-        theta = np.pi/2 - el
-        phi = -az
-        return theta, phi
-
-    def index_of(self, el, az):
-        theta, phi = self.elaz2hp(el, az)
-        return hp.ang2pix(self.nside, theta, phi)
-
-    def plot_dot(self, el, az):
-        theta, phi = self.elaz2hp(el, az)
-        hp.projplot(theta, phi, 'k.', rot=(0, 90, 0))  #
-
-    def plot_x(self, el, az):
-        theta, phi = self.elaz2hp(el, az)
-        hp.projplot(theta, phi, 'rx', rot=(0, 90, 180))  #
-
-    def set_visible_pixels(self, pix):
-        self.healpix_map[self.visible_index] = pix
-
-    def add_visible_pixels(self, pix):
-        self.healpix_map[self.visible_index] += pix
-
-    def rms(self):
-        _pixels = self.healpix_map[self.visible_index]
-        return np.sqrt(np.mean(_pixels**2))
-
-    def get_peak(self):
-        i = np.argmax(self.healpix_map[self.visible_index])
-        a_0 = self.healpix_map[i]
-        el_0 = self.el_r[i]
-        az_0 = self.az_r[i]
-
-        return a_0, el_0, az_0
-
-    def power_from_pixels(self):
-        _pixels = self.healpix_map[self.visible_index]
-        # super(HealpixSphere, self).power_from_pixels(_pixels)
-        power = np.sum(_pixels**2)/len(_pixels)
-        return power
+    return a_0, el_0, az_0
+# 
+def power_from_pixels(sphere):
+    power = np.sum(sphere.pixels**2)/len(sphere.pixels)
+    return power
