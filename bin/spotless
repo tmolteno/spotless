@@ -172,13 +172,14 @@ if __name__ == '__main__':
         spot = MultiSpotless(disko)
     else:
         spot = Spotless(disko)
+
+    nside = ARGS.nside
+    sphere = create_sphere(nside)
     
     src_list = get_source_list(source_json, el_limit=ARGS.elevation, jy_limit=1e4)
     
     if should_make_images:
         plt.figure(figsize=(6, 6))
-        nside = ARGS.nside
-        sphere = create_sphere(nside)
         spt = spot.display(plt=plt, src_list=src_list, sphere=sphere, show_model=ARGS.show_model)
         handle_image(ARGS, None, "gridless", time_repr, src_list, sphere)
     
@@ -189,17 +190,16 @@ if __name__ == '__main__':
     spot.deconvolute()
 
     if should_make_images:
-        plt.figure(figsize=(6, 6))
         spot.display(plt, src_list, sphere, ARGS.show_model)
         handle_image(ARGS, None, "residual", time_repr, src_list, sphere)
 
         reconstructed_sphere, src_power, residual_power = spot.reconstruct(nside)
         spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(ARGS, None, "spotless", time_repr, src_list, sphere)
+        handle_image(ARGS, None, "spotless", time_repr, src_list, reconstructed_sphere)
         # 
         reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct(nside)
         spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(ARGS, None, "spotless_direct", time_repr, src_list, sphere)
+        handle_image(ARGS, None, "spotless_direct", time_repr, src_list, reconstructed_sphere)
 
     model_dict = spot.model.to_dict()
     model_dict["time"] = timestamp.isoformat()

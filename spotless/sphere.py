@@ -14,15 +14,11 @@ logger.addHandler(logging.NullHandler())
 
 
 def elaz2lmn(el_r, az_r):
-    l = np.sin(az_r)*np.cos(el_r)
+    ll = np.sin(az_r)*np.cos(el_r)
     m = np.cos(az_r)*np.cos(el_r)
     # Often written in this weird way... np.sqrt(1.0 - l**2 - m**2)
     n = np.sin(el_r)
-    return l, m, n
-
-
-def rms(sphere):
-    return np.sqrt(np.mean(sphere.pixels**2))
+    return ll, m, n
 
 
 def get_peak(sphere):
@@ -32,8 +28,3 @@ def get_peak(sphere):
     az_0 = sphere.az_r[i]
 
     return a_0, el_0, az_0
-
-
-def power_from_pixels(sphere):
-    power = np.sum(sphere.pixels**2)/len(sphere.pixels)
-    return power

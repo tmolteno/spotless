@@ -1,10 +1,7 @@
 #
-# Copyright Tim Molteno 2017 tim@elec.ac.nz
+# Copyright Tim Molteno 2017-2022 tim@elec.ac.nz
 #
-
-from setuptools import setup, find_packages
-
-import setuptools.command.test
+from setuptools import setup
 
 with open('README.md') as f:
     readme = f.read()

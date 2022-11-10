@@ -20,9 +20,9 @@ from disko import DiSkO
 
 logger = logging.getLogger(__name__)
 # Add a null handler so logs can go somewhere
-logger.addHandler(logging.NullHandler())
+# logger.addHandler(logging.NullHandler())
 
-TEST_JSON='test_data/test_data.json'
+TEST_JSON = 'test_data/test_data.json'
 
 
 class TestSpotless(unittest.TestCase):
@@ -58,7 +58,7 @@ class TestSpotless(unittest.TestCase):
     def test_pixel_vis_power(self):
         vis_power = self.spot.vis_power(self.spot.residual_vis)
         pixel_power = self.spot.pixel_power(self.spot.residual_vis)
-
+        print(f"Vis power {vis_power}, pix {pixel_power}")
         self.assertAlmostEqual(vis_power/pixel_power, 1.0, 1)
 
     def test_single_vis_power(self):

@@ -2,7 +2,7 @@ test:
 	python3 setup.py test
 
 develop:
-	pip3 install -e .
+	python3 setup.py develop --user
 
 lint:
 	flake8 spotless --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
@@ -17,4 +17,4 @@ upload:
 	twine upload --repository pypi dist/*
 
 tart:
-	spotless --file test_data/test_data.json --nside 64 --display --PNG --SVG
+	spotless --file test_data/test_data.json --nside 64 --SVG --display

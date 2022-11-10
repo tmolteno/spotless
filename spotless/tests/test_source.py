@@ -8,7 +8,6 @@ import unittest
 import numpy as np
 
 from spotless import source
-from spotless import sphere
 
 
 class TestSource(unittest.TestCase):
