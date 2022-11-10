@@ -42,13 +42,14 @@ def get_source_list(source_json, el_limit, jy_limit):
     return src_list
 
 
-def create_sphere(nside):
-    return HealpixSubSphere.from_resolution(res_arcmin=120, nside=None, radius_rad=np.radians(89))
-
+# def create_sphere(nside):
+#     return HealpixSubSphere.from_resolution(res_arcmin=120, nside=None, radius_rad=np.radians(89))
+# 
 
 class SpotlessBase(object):
-    def __init__(self, disko):
+    def __init__(self, disko, sphere):
         self.disko = disko
+        self.sphere = sphere
         self.vis_arr = self.disko.vis_arr
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
@@ -123,7 +124,7 @@ class SpotlessBase(object):
         sphere.pixels *= scaling
 
     def pixel_power(self, vis):
-        sphere = create_sphere(self.working_nside)
+        sphere = self.sphere.copy()
         self.image_visibilities(vis, sphere)
         return sphere.get_power()
 
@@ -151,7 +152,7 @@ class SpotlessBase(object):
         ''' Estimate an initial point source for the model. This is effectively a brute
             force search over the surface of the sphere
         '''
-        sphere = create_sphere(self.working_nside)
+        sphere = self.sphere.copy()
         self.image_visibilities(vis, sphere)
         a_0, el_0, az_0 = get_peak(sphere)
         p0 = self.power(vis)
@@ -164,7 +165,7 @@ class SpotlessBase(object):
         '''
         return src.get_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
 
-    def reconstruct_direct(self, nside):
+    def reconstruct_direct(self):
         ''' Reconstruct the image
 
             Use a thresholded beam from each source as the reconstruction beam. This
@@ -178,7 +179,7 @@ class SpotlessBase(object):
         logger.info("Brightest Source {}".format(brightest_source))
         logger.info("Weakest Source {}".format(weakest_source))
 
-        sphere = create_sphere(nside)
+        sphere = self.sphere.copy()
 
         total_source_power = 0.0
 
@@ -222,8 +223,8 @@ class SpotlessBase(object):
 
 class Spotless(SpotlessBase):
 
-    def __init__(self, disko):
-        super(Spotless, self).__init__(disko)
+    def __init__(self, disko, sphere):
+        super(Spotless, self).__init__(disko, sphere)
 
     def step(self):
         '''
@@ -269,9 +270,9 @@ class Spotless(SpotlessBase):
 
         return self.power(self.residual_vis - pt_vis)
 
-    def reconstruct(self, nside):
+    def reconstruct(self):
         logger.info("Reconstructing Image")
-        sphere = create_sphere(nside)
+        sphere = self.sphere.copy()
 
         max_u = np.max(self.disko.u_arr)
         max_v = np.max(self.disko.v_arr)
@@ -289,13 +290,14 @@ class Spotless(SpotlessBase):
         sphere.pixels *= 0
         for src in self.model:
             i = sphere.index_of(src.el, src.az)
-            sphere.pixels[i] += src.get_power()
-            total_source_power += src.get_power()
+            if (i < sphere.npix):
+                sphere.pixels[i] += src.get_power()
+                total_source_power += src.get_power()
 
         logger.info("Total Source power {}".format(total_source_power))
 
         # Smooth the map
-        all_npix = hp.nside2npix(nside)
+        all_npix = hp.nside2npix(self.sphere.nside)
         all_pixels = np.zeros(all_npix) + hp.UNSEEN
         all_pixels[sphere.pixel_indices] = sphere.pixels
 
@@ -314,13 +316,13 @@ class Spotless(SpotlessBase):
                                                             model_map_power / total_source_power))
 
         # Add the residual
-        residual = create_sphere(nside)
+        residual = self.sphere.copy()
         self.image_visibilities(self.residual_vis, residual)
         residual_power = self.power(self.residual_vis)
         SpotlessBase.scale_to_power(residual, residual_power)
 
-        combined = sphere.copy()
-        combined.pixels.set_visible_pixels(sphere.pixels + residual.pixels, scale=True)
+        combined = self.sphere.copy()
+        combined.set_visible_pixels(sphere.pixels + residual.pixels, scale=True)
         return combined, model_map_power, residual_power
 
     def reconstruct_err(self, nside):
@@ -333,7 +335,7 @@ class Spotless(SpotlessBase):
         logger.info("Brightest Source {}".format(brightest_source))
         logger.info("Weakest Source {}".format(weakest_source))
 
-        sphere = create_sphere(nside)
+        sphere = self.sphere.copy()
         total_source_power = 0.0
         sphere.pixels *= 0
         for src in self.model:

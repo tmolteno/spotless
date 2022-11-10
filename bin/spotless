@@ -19,7 +19,7 @@ import setuptools
 import pkg_resources  # part of setuptools
 
 from copy import deepcopy
-from disko import DiSkO
+from disko import DiSkO, create_fov, Resolution
 
 import numpy as np
 
@@ -29,7 +29,7 @@ from tart_tools import api_handler
 from tart_tools import api_imaging
 from tart.imaging import elaz
 
-from spotless import Spotless, get_source_list, MultiSpotless, create_sphere
+from spotless import Spotless, get_source_list, MultiSpotless
 
 logger = logging.getLogger()
 
@@ -71,7 +71,10 @@ if __name__ == '__main__':
     parser.add_argument('--vis', required=False, default=None, help="Use a local JSON file containing the visibilities to create the image.")
     parser.add_argument('--dir', required=False, default='.', help="Output directory.")
     parser.add_argument('--rotation', type=float, default=0.0, help="Apply rotation (in degrees) to the antenna positions.")
-    parser.add_argument('--nside', type=int, default=32, help="Healpix nside parameter for display purposes only.")
+
+    parser.add_argument('--nside', type=int, default=None, help="Healpix nside parameter for display purposes only.")
+    parser.add_argument('--fov', type=str, default="180deg", help="Field of view. E.g. 1.3deg, 12\", 11', 8uas, 6mas...")
+    parser.add_argument('--res', type=str, default="2deg", help="Maximim Resolution of the sky. E.g. 1.3deg, 12\", 11', 8uas, 6mas.")
 
     parser.add_argument('--multimodel', action="store_true", help="Use the SPOTLESS algorithm with multi-dimensional model.")
     parser.add_argument('--beam', action="store_true", help="Generate a gridless beam.")
@@ -166,16 +169,17 @@ if __name__ == '__main__':
     # Processing
     should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.SVG
     
+    fov = Resolution.from_string(ARGS.fov)
+    res = Resolution.from_string(ARGS.res)
+
     disko = DiSkO.from_cal_vis(cv)
+    sphere = create_fov(ARGS.nside, fov=fov, res=res)
     
     if ARGS.multimodel:
-        spot = MultiSpotless(disko)
+        spot = MultiSpotless(disko, sphere)
     else:
-        spot = Spotless(disko)
+        spot = Spotless(disko, sphere)
 
-    nside = ARGS.nside
-    sphere = create_sphere(nside)
-    
     src_list = get_source_list(source_json, el_limit=ARGS.elevation, jy_limit=1e4)
     
     if should_make_images:
@@ -193,11 +197,11 @@ if __name__ == '__main__':
         spot.display(plt, src_list, sphere, ARGS.show_model)
         handle_image(ARGS, None, "residual", time_repr, src_list, sphere)
 
-        reconstructed_sphere, src_power, residual_power = spot.reconstruct(nside)
+        reconstructed_sphere, src_power, residual_power = spot.reconstruct()
         spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
         handle_image(ARGS, None, "spotless", time_repr, src_list, reconstructed_sphere)
         # 
-        reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct(nside)
+        reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct()
         spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
         handle_image(ARGS, None, "spotless_direct", time_repr, src_list, reconstructed_sphere)
 

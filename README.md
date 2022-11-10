@@ -55,6 +55,7 @@ in which case changes to the source-code will be immediately available to projec
 * 0.4.1 Use the disko sphere.
         Clean up unused code.
         Use harmonics from disko.
+        Specify the --fov and --res as in disko
 * 0.4.0 Move to github repository. Add to pypi. Use disko for utility functions.
         Add a --version CLI argument
 * 0.3.0 Update to python3
