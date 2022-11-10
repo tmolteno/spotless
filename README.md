@@ -52,6 +52,7 @@ in which case changes to the source-code will be immediately available to projec
 
 ## Changes
 
+* 0.4.1 Use the disko sphere.
 * 0.4.0 Move to github repository. Add to pypi. Use disko for utility functions.
         Add a --version CLI argument
 * 0.3.0 Update to python3

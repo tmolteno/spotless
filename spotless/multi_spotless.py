@@ -5,14 +5,12 @@
 
 import numpy as np
 import logging
-import healpy as hp
 
 from scipy.optimize import minimize
 
 from .spotless import SpotlessBase
 from .model import Model
 from .source import PointSource
-from .sphere import HealpixSphere
 
 logger = logging.getLogger(__name__)
 # Add other handlers if you're using this as a library
@@ -67,5 +65,3 @@ class MultiSpotless(SpotlessBase):
         mod = Model.from_vector(x)
         m_vis = mod.model_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
         return self.power(self.vis_arr - m_vis)
-
-

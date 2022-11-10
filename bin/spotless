@@ -176,6 +176,7 @@ if __name__ == '__main__':
     src_list = get_source_list(source_json, el_limit=ARGS.elevation, jy_limit=1e4)
     
     if should_make_images:
+        plt.figure(figsize=(6, 6))
         nside = ARGS.nside
         sphere = create_sphere(nside)
         spt = spot.display(plt=plt, src_list=src_list, sphere=sphere, show_model=ARGS.show_model)
@@ -188,6 +189,7 @@ if __name__ == '__main__':
     spot.deconvolute()
 
     if should_make_images:
+        plt.figure(figsize=(6, 6))
         spot.display(plt, src_list, sphere, ARGS.show_model)
         handle_image(ARGS, None, "residual", time_repr, src_list, sphere)
 

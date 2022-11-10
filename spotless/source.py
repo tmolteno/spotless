@@ -11,6 +11,7 @@ from . import sphere
 
 from tart.util import constants
 
+
 class PointSource(object):
     '''
     A single point source in el,az co-ordinates
@@ -26,7 +27,7 @@ class PointSource(object):
         if self.power is None:
             return self.a
         return self.power
-    
+
     def to_dict(self):
         ret = {}
         ret["a"] = self.a

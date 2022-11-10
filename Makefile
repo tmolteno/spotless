@@ -17,4 +17,4 @@ upload:
 	twine upload --repository pypi dist/*
 
 tart:
-	spotless --file test_data/publication_data.json --nside 64 --PNG --SVG
+	spotless --file test_data/test_data.json --nside 64 --display --PNG --SVG
