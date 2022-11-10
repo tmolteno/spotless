@@ -69,13 +69,13 @@ class SpotlessBase(object):
         return harmonic_list
 
     def image_visibilities(self, vis_arr, sphere):
-        """Create a healpix image from visibilities
+        """Create an image from visibilities
 
         Args:
 
             vis_arr (np.array): An array of visibilities (the same length as the uvw array
                                 in this object
-            nside (int):        The healpix nside parameter.
+            sphere (int):       The sphere object nside parameter.
         """
 
         assert len(vis_arr) == len(self.disko.u_arr)
@@ -156,7 +156,8 @@ class SpotlessBase(object):
         return image_pixels*scaling
 
     def pixel_power(self, vis):
-        sphere = self.image_visibilities(vis, nside=self.working_nside)
+        sphere = create_sphere(self.working_nside)
+        self.image_visibilities(vis, sphere)
         return power_from_pixels(sphere)
 
     def vis_power(self, vis):

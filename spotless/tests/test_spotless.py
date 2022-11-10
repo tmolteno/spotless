@@ -16,6 +16,7 @@ from tart.operation import settings
 from tart_tools import api_imaging
 from tart.imaging import elaz
 
+from disko import DiSkO
 
 logger = logging.getLogger(__name__)
 # Add a null handler so logs can go somewhere
@@ -50,7 +51,9 @@ class TestSpotless(unittest.TestCase):
                 vis_json, config, gains, phase_offsets, flag_list)
             src_list = elaz.from_json(source_json, 0.0)
 
-        self.spot = Spotless(cv)
+        disko = DiSkO.from_cal_vis(cv)
+
+        self.spot = Spotless(disko)
 
     def test_pixel_vis_power(self):
         vis_power = self.spot.vis_power(self.spot.residual_vis)
