@@ -3,4 +3,4 @@ matplotlib>=3.5
 healpy>=1.15
 astropy>=4.3
 tart>=1.1.2b2
-disko>=0.9.3b4
+disko>=0.9.4b2

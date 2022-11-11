@@ -19,8 +19,8 @@ logger.addHandler(logging.NullHandler())
 
 class MultiSpotless(SpotlessBase):
 
-    def __init__(self, disko):
-        super(MultiSpotless, self).__init__(disko)
+    def __init__(self, disko, sphere):
+        super(MultiSpotless, self).__init__(disko, sphere)
 
     def step(self):
         '''
