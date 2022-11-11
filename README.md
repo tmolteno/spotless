@@ -9,9 +9,11 @@ This is essentially  a grid-free version of the Cotton-Schwab algorithm with a d
 It does not require W-projection and handles
 non-coplanar antennas without difficulty. It also works on all-sky images just fine.
 
-Spotless works in a similar way to Hogbom's CLEAN algorithm, however 
+Spotless works in a similar way to Hogbom's CLEAN algorithm, however there is no gridding required, as the algorithm works purely in visibility space.
 
- ![Dirty, Spotless and Residual](https://github.com/tmolteno/spotless/blob/master/img/spotless_image.jpg?raw=true)
+Dirty Image                |  Spotless Image
+:-------------------------:|:-------------------------:
+![](https://github.com/tmolteno/spotless/blob/main/img/gridless.png)  |  ![](https://github.com/tmolteno/spotless/blob/main/img/spotless.png)
 
 For more information see the [TART Github repository](https://github.com/tmolteno/TART)
 
@@ -45,10 +47,6 @@ If you are developing this package, this should be installed using
 	make develop
 ```
 in which case changes to the source-code will be immediately available to projects using it.
-
-    
-[spotless_image]: https://github.com/tmolteno/spotless/blob/master/img/spotless_image.jpg "TART All-Sky Image"
-
 
 ## Changes
 
