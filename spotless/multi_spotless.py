@@ -8,7 +8,7 @@ import logging
 
 from scipy.optimize import minimize
 
-from .spotless import SpotlessBase
+from .spotless import Spotless
 from .model import Model
 from .source import PointSource
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-class MultiSpotless(SpotlessBase):
+class MultiSpotless(Spotless):
 
     def __init__(self, disko, sphere):
         super(MultiSpotless, self).__init__(disko, sphere)

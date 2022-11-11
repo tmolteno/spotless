@@ -52,6 +52,7 @@ in which case changes to the source-code will be immediately available to projec
 
 ## Changes
 
+* 0.4.2 Read from measurement sets --ms
 * 0.4.1 Use the disko sphere.
         Clean up unused code.
         Use harmonics from disko.

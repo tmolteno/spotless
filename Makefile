@@ -18,3 +18,6 @@ upload:
 
 tart:
 	spotless --file test_data/test_data.json --multimodel --fov 160deg --res 30arcmin --SVG
+
+ms:
+	spotless --ms test_data/test.ms --multimodel --fov 160deg --res 30arcmin --SVG

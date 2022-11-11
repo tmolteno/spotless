@@ -7,7 +7,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(name='spotless',
-      version='0.4.1',
+      version='0.4.2',
       description='Grid-Free Deconvolution Directly From Visibilities',
       long_description=readme,
       long_description_content_type="text/markdown",

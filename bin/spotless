@@ -67,10 +67,17 @@ if __name__ == '__main__':
     parser.add_argument('--api', required=False, default='https://tart.elec.ac.nz/signal', help="Telescope API server URL.")
     parser.add_argument('--catalog', required=False, default='https://tart.elec.ac.nz/catalog', help="Catalog API URL.")
 
-    parser.add_argument('--file', required=False, default=None, help="Snapshot ovservation saved JSON file (visiblities, positions and more).")
-    parser.add_argument('--vis', required=False, default=None, help="Use a local JSON file containing the visibilities to create the image.")
+    data_group = parser.add_mutually_exclusive_group()
+    data_group.add_argument('--file', required=False, default=None, help="Snapshot observation saved JSON file (visiblities, positions and more).")
+    data_group.add_argument('--ms', required=False, default=None, help="visibility file")
+    data_group.add_argument('--vis', required=False, default=None, help="Use a local JSON file containing the visibilities to create the image.")
+
+    parser.add_argument('--nvis', type=int, default=1000, help="Number of visibilities to use.")
+    parser.add_argument('--channel', type=int, default=0, help="Use this frequency channel.")
+    parser.add_argument('--field', type=int, default=0, help="Use this FIELD_ID from the measurement set.")
+    parser.add_argument('--ddid', type=int, default=0, help="Use this DDID from the measurement set.")
+    
     parser.add_argument('--dir', required=False, default='.', help="Output directory.")
-    parser.add_argument('--rotation', type=float, default=0.0, help="Apply rotation (in degrees) to the antenna positions.")
 
     parser.add_argument('--nside', type=int, default=None, help="Healpix nside parameter for display purposes only.")
     parser.add_argument('--fov', type=str, default="180deg", help="Field of view. E.g. 1.3deg, 12\", 11', 8uas, 6mas...")
@@ -113,7 +120,12 @@ if __name__ == '__main__':
         print(f"spotless: Version {version}")
         print("          (c) 2022 Tim Molteno")
         sys.exit(0)
-        
+
+    fov = Resolution.from_string(ARGS.fov)
+    res = Resolution.from_string(ARGS.res)
+
+    sphere = create_fov(ARGS.nside, fov=fov, res=res)
+
     if ARGS.file:
         logger.info("Getting Data from file: {}".format(ARGS.file))
         # Load data from a JSON file
@@ -140,6 +152,18 @@ if __name__ == '__main__':
             src_list = elaz.from_json(source_json, 0.0)
         if not ARGS.show_sources:
             src_list = None
+        disko = DiSkO.from_cal_vis(cv)
+    elif ARGS.ms:
+        logger.info(f"Getting Data from MS file: {ARGS.ms} to {sphere}")
+
+        if not os.path.exists(ARGS.ms):
+            raise RuntimeError(f"Measurement set {ARGS.ms} not found")
+
+        min_res = sphere.min_res()
+        logger.info(f"Min Res {min_res}")
+        disko = DiSkO.from_ms(ARGS.ms, ARGS.nvis, res=min_res, channel=ARGS.channel, field_id=ARGS.field, ddid=ARGS.ddid)
+        # Convert from reduced Julian Date to timestamp.
+        timestamp = disko.timestamp
     else:
         logger.info("Getting Data from API: {}".format(ARGS.api))
 
@@ -161,19 +185,14 @@ if __name__ == '__main__':
         logger.info("Data Download Complete")
 
         cv, timestamp = api_imaging.vis_calibrated(vis_json, config, gains['gain'], gains['phase_offset'], flag_list=[])
+        disko = DiSkO.from_cal_vis(cv)
 
-    api_imaging.rotate_vis(ARGS.rotation, cv, reference_positions = deepcopy(config.get_antenna_positions()))
     
     time_repr = "{:%Y_%m_%d_%H_%M_%S_%Z}".format(timestamp)
 
     # Processing
     should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.SVG
     
-    fov = Resolution.from_string(ARGS.fov)
-    res = Resolution.from_string(ARGS.res)
-
-    disko = DiSkO.from_cal_vis(cv)
-    sphere = create_fov(ARGS.nside, fov=fov, res=res)
     
     if ARGS.multimodel:
         spot = MultiSpotless(disko, sphere)
