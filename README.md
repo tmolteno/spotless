@@ -11,7 +11,7 @@ non-coplanar antennas without difficulty. It also works on all-sky images just f
 
 Spotless works in a similar way to Hogbom's CLEAN algorithm, however 
 
- ![Dirty, Spotless and Residual][spotless_image] 
+ ![Dirty, Spotless and Residual][img/spotless_image.jpg] 
 
 For more information see the [TART Github repository](https://github.com/tmolteno/TART)
 
