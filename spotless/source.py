@@ -67,6 +67,6 @@ class PointSource(object):
 
     def get_bounds(self, d_el):
         d_az = np.abs(d_el/(np.cos(self.el) + 0.001))
-        return [(0.0, 1.0),
+        return [(0.0, None),
                 (max(self.el - d_el, 0), min(self.el + d_el, np.pi/2)),
                 (self.az - d_az, self.az + d_az)]

@@ -11,7 +11,7 @@ non-coplanar antennas without difficulty. It also works on all-sky images just f
 
 Spotless works in a similar way to Hogbom's CLEAN algorithm, however 
 
- ![Dirty, Spotless and Residual][tart_image] 
+ ![Dirty, Spotless and Residual][spotless_image] 
 
 For more information see the [TART Github repository](https://github.com/tmolteno/TART)
 
@@ -47,7 +47,7 @@ If you are developing this package, this should be installed using
 in which case changes to the source-code will be immediately available to projects using it.
 
     
-[spotless_image]: https://github.com/tmolteno/TART/blob/master/doc/img/tart_image.jpg "TART All-Sky Image"
+[spotless_image]: https://github.com/tmolteno/spotless/blob/master/img/spotless_image.jpg "TART All-Sky Image"
 
 
 ## Changes

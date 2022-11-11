@@ -34,7 +34,7 @@ class Model(object):
         return ret
 
     def __repr__(self):
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), indent=4)
 
     def brightest(self):
         '''Return Brightest Source'''

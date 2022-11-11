@@ -38,6 +38,7 @@ class MultiSpotless(Spotless):
         model_vect = self.model.to_vector()
         x0 = np.append(model_vect, [0.1, el_0, az_0])
 
+        # Get the bounds of the existing points. Each dimension is constrained appropriately
         bounds = []
         for src in self.model:
             for b in src.get_bounds(d_el):
