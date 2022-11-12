@@ -14,9 +14,7 @@ non-coplanar antennas without difficulty. It also works on all-sky images just f
 The CLEAN algorithm is essentially deconvolution by repeated subtraction. I think this is silly, hence spotless. Spotless works by building up a model of the field of view in terms of point sources using model-fitting in visibility space. 
 
 Spotless deconvolutes the measured visibilities $V(u,v,w)$ into a sum of point_source visibilities $V_P(\theta, \phi)$ where $\theta$ and $\phi$ are the co-ordinates of the point source: i.e.,
-$$
-  V(u,v,w) = \sum_{i=0}{N} A_i V_P(\theta_i, \phi_i) + V_r(u,v,w)
-$$
+$$ V(u,v,w) = \sum_{i=0}{N} A_i V_P(\theta_i, \phi_i) + V_r(u,v,w) $$
 where the $A_i$ are the brightness of each point source, and $V_r$ are the residual visibilities.
 
 Spotless has two algorithms for doing this. The first, like CLEAN, is sequential location of point sources:
