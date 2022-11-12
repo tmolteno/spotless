@@ -36,6 +36,7 @@ At each step the new point source is located using a minimizer from the residual
       & = & \min_{A, \theta, \phi} E(V - A V_P(\theta, \phi))
 \end{eqnarray*}
 ```
+where $E(V)$ is the total power in the visibilities. So we find the point source that minimizes the remaining power.
 
 
 
