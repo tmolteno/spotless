@@ -39,7 +39,6 @@ At each step the new point source is located using a minimizer from the residual
 where $E(V)$ is the total power in the visibilities. So we find the point source that minimizes the remaining power.
 
 
-
 ### MultiSpotless 
 
 Multispotless (--multimodel command line option) uses a better (but slower) sequential location. It builds up a multiple-point-source model as the algorithm progresses.
@@ -90,6 +89,7 @@ in which case changes to the source-code will be immediately available to projec
 
 ## Changes
 
+* 0.4.3 Use a common field of view parser with DiSkO
 * 0.4.2 Read from measurement sets --ms
 * 0.4.1 Use the disko sphere.
         Clean up unused code.

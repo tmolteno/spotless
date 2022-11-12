@@ -19,7 +19,7 @@ import setuptools
 import pkg_resources  # part of setuptools
 
 from copy import deepcopy
-from disko import DiSkO, create_fov, Resolution
+from disko import DiSkO, sphere_from_args, sphere_args_parser
 
 import numpy as np
 
@@ -62,8 +62,13 @@ def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
 
 
 if __name__ == '__main__':
+    
+    sphere_parsers = sphere_args_parser()
+
     parser = argparse.ArgumentParser(description='Generate an SPOTLESS using the web api of a TART radio telescope.', 
-                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                    parents=sphere_parsers)
+
     parser.add_argument('--api', required=False, default='https://tart.elec.ac.nz/signal', help="Telescope API server URL.")
     parser.add_argument('--catalog', required=False, default='https://tart.elec.ac.nz/catalog', help="Catalog API URL.")
 
@@ -78,10 +83,6 @@ if __name__ == '__main__':
     parser.add_argument('--ddid', type=int, default=0, help="Use this DDID from the measurement set.")
     
     parser.add_argument('--dir', required=False, default='.', help="Output directory.")
-
-    parser.add_argument('--nside', type=int, default=None, help="Healpix nside parameter for display purposes only.")
-    parser.add_argument('--fov', type=str, default="180deg", help="Field of view. E.g. 1.3deg, 12\", 11', 8uas, 6mas...")
-    parser.add_argument('--res', type=str, default="2deg", help="Maximim Resolution of the sky. E.g. 1.3deg, 12\", 11', 8uas, 6mas.")
 
     parser.add_argument('--multimodel', action="store_true", help="Use the SPOTLESS algorithm with multi-dimensional model.")
     parser.add_argument('--beam', action="store_true", help="Generate a gridless beam.")
@@ -121,10 +122,7 @@ if __name__ == '__main__':
         print("          (c) 2022 Tim Molteno")
         sys.exit(0)
 
-    fov = Resolution.from_string(ARGS.fov)
-    res = Resolution.from_string(ARGS.res)
-
-    sphere = create_fov(ARGS.nside, fov=fov, res=res)
+    sphere = sphere_from_args(ARGS)
 
     if ARGS.file:
         logger.info("Getting Data from file: {}".format(ARGS.file))
