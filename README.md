@@ -9,7 +9,36 @@ This is essentially  a grid-free version of the Cotton-Schwab algorithm with a d
 It does not require W-projection and handles
 non-coplanar antennas without difficulty. It also works on all-sky images just fine.
 
-Spotless works in a similar way to Hogbom's CLEAN algorithm, however there is no gridding required, as the algorithm works purely in visibility space.
+## How does Spotless work
+
+The CLEAN algorithm is essentially deconvolution by repeated subtraction. I think this is silly, hence spotless. Spotless works by building up a model of the field of view in terms of point sources using model-fitting in visibility space. 
+
+Spotless deconvolutes the measured visibilities $V(u,v,w)$ into a sum of point_source visibilities $V_P(\theta, \phi)$ where $\theta$ and $\phi$ are the co-ordinates of the point source: i.e.,
+$$
+  V(u,v,w) = \sum_{i=0}{N} A_i V_P(\theta_i, \phi_i) + V_r(u,v,w)
+$$
+where the $A_i$ are the brightness of each point source, and $V_r$ are the residual visibilities.
+
+Spotless has two algorithms for doing this. The first, like CLEAN, is sequential location of point sources:
+* $$ V(u,v,w) & = & A_0 V_P(\theta_0, \phi_0) + V_1(u,v,w) $$
+* $$ V_1(u,v,w) & = & A_1 V_P(\theta_1, \phi_1) + V_2(u,v,w) $$
+* ...
+* $$ V_N(u,v,w) & = & A_N V_P(\theta_N, \phi_N) + V_{N+1}(u,v,w) $$
+At each step the new point source is located using a minimizer from the residuals at that step:
+$$   P_i = \min_{A, \theta, \phi} E(V_0) $$
+$$       = \min_{A, \theta, \phi} E(V - A V_P(\theta, \phi)) $$
+
+
+### MultiSpotless 
+
+Multispotless (--multimodel command line option) uses a better (but slower) sequential location. It builds up a multiple-point-source model as the algorithm progresses.
+
+
+### Termination Criterion
+
+Both spotless variants terminate when the power in the residual stops decreasing.
+
+## Results
 
 Dirty Image                |  Spotless Image
 :-------------------------:|:-------------------------:
