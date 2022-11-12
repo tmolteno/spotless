@@ -27,11 +27,16 @@ V(u,v,w) & = & A_0 V_P(\theta_0, \phi_0) + V_1(u,v,w) \\
 V_1(u,v,w) & = & A_1 V_P(\theta_1, \phi_1) + V_2(u,v,w) \\
  ... \\
 V_N(u,v,w) & = & A_N V_P(\theta_N, \phi_N) + V_{N+1}(u,v,w)
-\end{eqnarray}
+\end{eqnarray*}
 ```
 At each step the new point source is located using a minimizer from the residuals at that step:
-$$   P_i = \min_{A, \theta, \phi} E(V_0) $$
-$$       = \min_{A, \theta, \phi} E(V - A V_P(\theta, \phi)) $$
+```math
+\begin{eqnarray*}
+  P_i & = & \min_{A, \theta, \phi} E(V_0) \\
+      & = & \min_{A, \theta, \phi} E(V - A V_P(\theta, \phi))
+\end{eqnarray*}
+```
+
 
 
 ### MultiSpotless 
