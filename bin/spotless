@@ -35,7 +35,7 @@ logger = logging.getLogger()
 
 def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
     """ This function manages the output of an image, drawing sources e.t.c."""
-    image_title = '{}_{}'.format(title, time_repr)
+    image_title = f"{args.title}_{title}_{time_repr}"
     plt.title(image_title)
     if args.fits:
         fname = '{}.fits'.format(image_title)
@@ -77,24 +77,45 @@ if __name__ == '__main__':
     data_group.add_argument('--ms', required=False, default=None, help="visibility file")
     data_group.add_argument('--vis', required=False, default=None, help="Use a local JSON file containing the visibilities to create the image.")
 
-    parser.add_argument('--nvis', type=int, default=1000, help="Number of visibilities to use.")
-    parser.add_argument('--channel', type=int, default=0, help="Use this frequency channel.")
-    parser.add_argument('--field', type=int, default=0, help="Use this FIELD_ID from the measurement set.")
-    parser.add_argument('--ddid', type=int, default=0, help="Use this DDID from the measurement set.")
+    parser.add_argument('--nvis', type=int, default=1000,
+                        help="Number of visibilities to use.")
+    parser.add_argument('--channel', type=int, default=0,
+                        help="Use this frequency channel.")
+    parser.add_argument('--field', type=int, default=0,
+                        help="Use this FIELD_ID from the measurement set.")
+    parser.add_argument('--ddid', type=int, default=0,
+                        help="Use this DDID from the measurement set.")
     
-    parser.add_argument('--dir', required=False, default='.', help="Output directory.")
+    parser.add_argument('--dir', required=False, default='.',
+                        help="Output directory.")
 
-    parser.add_argument('--multimodel', action="store_true", help="Use the SPOTLESS algorithm with multi-dimensional model.")
-    parser.add_argument('--beam', action="store_true", help="Generate a gridless beam.")
+    parser.add_argument('--multimodel', action="store_true",
+                        help="Use the SPOTLESS algorithm with multi-dimensional model.")
 
-    parser.add_argument('--elevation', type=float, default=20.0, help="Elevation limit for displaying sources (degrees)")
-    parser.add_argument('--display', action="store_true", help="Display Image to the user")
-    parser.add_argument('--fits', action="store_true", help="Generate a FITS format image")
-    parser.add_argument('--PNG', action="store_true", help="Generate a PNG format image")
-    parser.add_argument('--PDF', action="store_true", help="Generate a PDF format image")
-    parser.add_argument('--SVG', action="store_true", help="Generate a SVG format image")
-    parser.add_argument('--show-sources', action="store_true", help="Show known sources on images (only works on PNG).")
-    parser.add_argument('--version', action="store_true", help="Display the current version")
+    parser.add_argument('--beam', action="store_true",
+                        help="Generate a gridless beam.")
+
+    parser.add_argument('--display', action="store_true",
+                        help="Display Image to the user")
+    parser.add_argument('--fits', action="store_true",
+                        help="Generate a FITS format image")
+    parser.add_argument('--PNG', action="store_true",
+                        help="Generate a PNG format image")
+    parser.add_argument('--PDF', action="store_true",
+                        help="Generate a PDF format image")
+    parser.add_argument('--SVG', action="store_true",
+                        help="Generate a SVG format image")
+    parser.add_argument('--show-sources',
+                        action="store_true",
+                        help="Show known sources on images (only works on PNG).")
+    parser.add_argument('--elevation', type=float, 
+                        default=20.0, 
+                        help="Elevation limit for displaying sources (degrees)")
+    parser.add_argument('--title', required=False, 
+                        default="spotless", help="Prefix the output files.")
+
+    parser.add_argument('--version', action="store_true",
+                        help="Display the current version")
     parser.add_argument('--show-model', action="store_true", help="Show the location of the model sources.")
 
     source_json = None
@@ -202,11 +223,13 @@ if __name__ == '__main__':
     if should_make_images:
         plt.figure(figsize=(6, 6))
         spt = spot.display(plt=plt, src_list=src_list, sphere=sphere, show_model=ARGS.show_model)
-        handle_image(ARGS, None, "gridless", time_repr, src_list, sphere)
+        handle_image(ARGS, None, "gridless",
+                     time_repr, src_list, sphere)
     
     if ARGS.beam:
         spot.beam(plt, nside)
-        handle_image(ARGS, None, "beam", time_repr, src_list, sphere)
+        handle_image(ARGS, None, "beam",
+                     time_repr, src_list, sphere)
 
     spot.deconvolute()
 
@@ -216,11 +239,14 @@ if __name__ == '__main__':
 
         reconstructed_sphere, src_power, residual_power = spot.reconstruct()
         spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(ARGS, None, "spotless", time_repr, src_list, reconstructed_sphere)
-        # 
+        handle_image(ARGS, None, "spotless", time_repr,
+                     src_list, reconstructed_sphere)
+        
         reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct()
         spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(ARGS, None, "spotless_direct", time_repr, src_list, reconstructed_sphere)
+        handle_image(ARGS, None, "spotless_direct", 
+                     time_repr, src_list,
+                     reconstructed_sphere)
 
     model_dict = spot.model.to_dict()
     model_dict["time"] = timestamp.isoformat()
@@ -228,10 +254,11 @@ if __name__ == '__main__':
         text = json.dumps(model_dict, sort_keys=True, indent=4,
                     ensure_ascii=True)
         logger.info("Model {}".format(text))
-    else:
-        model_name = "model_{}.json".format(time_repr)
-        fpath = os.path.join(ARGS.dir, model_name)
 
-        with open(fpath, 'w') as outfile:
-            json.dump(model_dict, outfile, sort_keys=True, indent=4,
-                    ensure_ascii=True)
+    model_name = f"{ARGS.title}_model_{time_repr}.json"
+    fpath = os.path.join(ARGS.dir, model_name)
+
+    with open(fpath, 'w') as outfile:
+        json.dump(model_dict, outfile,
+                  sort_keys=True, indent=4,
+                  ensure_ascii=True)

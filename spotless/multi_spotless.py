@@ -30,10 +30,11 @@ class MultiSpotless(Spotless):
         '''
         d_el = np.radians(2.0)
 
-        m_vis = self.model.model_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
+        m_vis = self.model.model_vis(self.disko.u_arr,
+                                     self.disko.v_arr, self.disko.w_arr)
 
         a_0, el_0, az_0, p0 = self.estimate_initial_point_source(
-            self.vis_arr-m_vis)
+            self.vis_arr - m_vis)
 
         model_vect = self.model.to_vector()
         x0 = np.append(model_vect, [0.1, el_0, az_0])
@@ -48,8 +49,10 @@ class MultiSpotless(Spotless):
         for b in src.get_bounds(d_el):
             bounds.append(b)
 
+        # fmin = minimize(self.f_n, x0.flatten(),
+        #                 method='L-BFGS-B', bounds=bounds)
         fmin = minimize(self.f_n, x0.flatten(),
-                        method='L-BFGS-B', bounds=bounds)
+                        method='Nelder-mead', bounds=bounds)
         p1 = fmin.fun
 
         self.model = Model.from_vector(fmin.x)
@@ -64,5 +67,7 @@ class MultiSpotless(Spotless):
             Find the power in the residual
         '''
         mod = Model.from_vector(x)
-        m_vis = mod.model_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
+        m_vis = mod.model_vis(self.disko.u_arr,
+                              self.disko.v_arr,
+                              self.disko.w_arr)
         return self.power(self.vis_arr - m_vis)
