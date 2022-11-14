@@ -24,3 +24,6 @@ tart:
 
 ms:
 	spotless --file test_data/test_data.json --healpix --fov 160deg --res 60arcmin --HDF mytest.hdf
+
+draw:
+	disko_draw mytest.hdf --show-sources --SVG mytest.svg
