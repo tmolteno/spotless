@@ -23,4 +23,4 @@ tart:
 	spotless --file test_data/test_data.json --multimodel --healpix --fov 160deg --res 30arcmin --SVG
 
 ms:
-	spotless --ms test_data/test.ms --healpix --fov 160deg --res 60arcmin --SVG
+	spotless --file test_data/test_data.json --healpix --fov 160deg --res 60arcmin --HDF mytest.hdf
