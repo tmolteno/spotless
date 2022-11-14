@@ -208,7 +208,8 @@ if __name__ == '__main__':
         cv, timestamp = api_imaging.vis_calibrated(vis_json, config, gains['gain'], gains['phase_offset'], flag_list=[])
         disko = DiSkO.from_cal_vis(cv)
 
-    
+    sphere.set_info(timestamp=timestamp)
+
     time_repr = "{:%Y_%m_%d_%H_%M_%S_%Z}".format(timestamp)
 
     # Processing
