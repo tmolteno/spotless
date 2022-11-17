@@ -101,6 +101,8 @@ if __name__ == '__main__':
                         help="Generate a FITS format image")
     parser.add_argument('--PNG', action="store_true",
                         help="Generate a PNG format image")
+    parser.add_argument('--HDF', required=False, default=None,
+                        help="Generate an HDF format representation of the field of view")
     parser.add_argument('--PDF', action="store_true",
                         help="Generate a PDF format image")
     parser.add_argument('--SVG', action="store_true",
@@ -209,7 +211,8 @@ if __name__ == '__main__':
         cv, timestamp = api_imaging.vis_calibrated(vis_json, config, gains['gain'], gains['phase_offset'], flag_list=[])
         disko = DiSkO.from_cal_vis(cv)
 
-    
+    sphere.set_info(timestamp=timestamp)
+
     time_repr = "{:%Y_%m_%d_%H_%M_%S_%Z}".format(timestamp)
 
     # Processing
@@ -240,14 +243,21 @@ if __name__ == '__main__':
         spot.display(plt, src_list, sphere, ARGS.show_model)
         handle_image(ARGS, None, "residual", time_repr, src_list, sphere)
 
-        reconstructed_sphere, src_power, residual_power = spot.reconstruct()
-        spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
+    reconstructed_sphere, src_power, residual_power = spot.reconstruct()
+    if should_make_images:
+        spot.plot(plt, reconstructed_sphere, 
+                  src_list, ARGS.show_model)
         handle_image(ARGS, None, "spotless", time_repr,
                      src_list, reconstructed_sphere)
-        
-        reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct()
-        spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(ARGS, None, "spotless_direct", 
+    if ARGS.HDF:
+        hdf_path = os.path.join(ARGS.dir, ARGS.HDF)
+        reconstructed_sphere.to_hdf(hdf_path)
+
+    reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct()
+    if should_make_images:
+        spot.plot(plt, reconstructed_sphere, src_list,
+                  ARGS.show_model)
+        handle_image(ARGS, None, "spotless_direct",
                      time_repr, src_list,
                      reconstructed_sphere)
 
