@@ -27,7 +27,7 @@ from .model import Model
 from .source import PointSource
 from .sphere import get_peak
 
-from disko import HealpixSubSphere, Resolution
+from disko import Resolution
 
 logger = logging.getLogger(__name__)
 # Add other handlers if you're using this as a library
@@ -41,10 +41,6 @@ def get_source_list(source_json, el_limit, jy_limit):
             source_json, el_limit=el_limit, jy_limit=jy_limit)
     return src_list
 
-
-# def create_sphere(nside):
-#     return HealpixSubSphere.from_resolution(res_arcmin=120, nside=None, radius_rad=np.radians(89))
-# 
 
 class SpotlessBase(object):
     def __init__(self, disko, sphere):
@@ -359,7 +355,7 @@ class Spotless(SpotlessBase):
                                                             model_map_power / total_source_power))
 
         # Add the residual
-        residual = create_sphere(nside)
+        residual = sphere.copy()
         self.image_visibilities(self.residual_vis, residual)
         sphere.pixels += residual.pixels
 

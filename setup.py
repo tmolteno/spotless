@@ -18,7 +18,7 @@ setup(name='spotless',
       author_email='tim@elec.ac.nz',
       license='GPLv3',
       install_requires=['numpy', 'matplotlib',
-                        'healpy', 'astropy', 'tart', 'disko'],
+                        'healpy', 'astropy', 'tart', 'disko', 'tart2ms'],
       packages=['spotless'],
       scripts=['bin/spotless', 'bin/spotless_calibrate', 'bin/gridless'],
       classifiers=[

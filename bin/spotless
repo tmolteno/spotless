@@ -31,6 +31,8 @@ from tart.imaging import elaz
 
 from spotless import Spotless, get_source_list, MultiSpotless
 
+from tart2ms import get_array_location
+
 logger = logging.getLogger()
 
 def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
@@ -174,6 +176,10 @@ if __name__ == '__main__':
         if not ARGS.show_sources:
             src_list = None
         disko = DiSkO.from_cal_vis(cv)
+        lat = config.get_lat()
+        lon = config.get_lon()
+        height = config.get_alt()
+
     elif ARGS.ms:
         logger.info(f"Getting Data from MS file: {ARGS.ms} to {sphere}")
 
@@ -185,6 +191,12 @@ if __name__ == '__main__':
         disko = DiSkO.from_ms(ARGS.ms, ARGS.nvis, res=min_res, channel=ARGS.channel, field_id=ARGS.field, ddid=ARGS.ddid)
         # Convert from reduced Julian Date to timestamp.
         timestamp = disko.timestamp
+        
+        json_info = get_array_location(ARGS.ms)
+        lat = json_info['lat']
+        lon = json_info['lon']
+        height =json_info['height']
+
     else:
         logger.info("Getting Data from API: {}".format(ARGS.api))
 
@@ -208,7 +220,12 @@ if __name__ == '__main__':
         cv, timestamp = api_imaging.vis_calibrated(vis_json, config, gains['gain'], gains['phase_offset'], flag_list=[])
         disko = DiSkO.from_cal_vis(cv)
 
-    sphere.set_info(timestamp=timestamp)
+        lat = config.get_lat()
+        lon = config.get_lon()
+        height = config.get_alt()
+
+    sphere.set_info(timestamp=timestamp,
+                    lon=lon, lat=lat, height=height)
 
     time_repr = "{:%Y_%m_%d_%H_%M_%S_%Z}".format(timestamp)
 
