@@ -19,11 +19,16 @@ upload:
 	python3 setup.py sdist
 	twine upload --repository pypi dist/*
 
+TART_ARGS=--ms test_data/tart.ms --healpix --fov 160deg --res 30arcmin
+#TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
-	spotless --file test_data/test_data.json --multimodel --healpix --fov 160deg --res 30arcmin --SVG
+	spotless  ${TART_ARGS} --multimodel --SVG
 
 ms:
-	spotless --file test_data/test_data.json --healpix --fov 160deg --show-sources --SVG --res 60arcmin --HDF mytest.hdf
+	spotless ${TART_ARGS} --multimodel --HDF ms.hdf --SVG --title ms
+
+disko:
+	disko ${TART_ARGS} --tikhonov --alpha 0.02 --SVG  --HDF disko.hdf --title disko
 
 draw:
-	disko_draw mytest.hdf --show-sources --SVG mytest.svg
+	disko_draw ms.hdf --show-sources --SVG ms.svg

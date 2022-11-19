@@ -46,7 +46,7 @@ class SpotlessBase(object):
     def __init__(self, disko, sphere):
         self.disko = disko
         self.sphere = sphere
-        self.vis_arr = self.disko.vis_arr
+        self.vis_arr = np.array(self.disko.vis_arr)
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
         self.working_nside = 20
@@ -256,7 +256,9 @@ class Spotless(SpotlessBase):
         logger.info("Adding source {}".format(src))
         self.model.add_source(src)
         self.residual_vis -= self.get_src_vis(src)
-
+        self.residual_vis = self.vis_arr - self.model.model_vis(self.disko.u_arr,
+                                                                self.disko.v_arr,
+                                                                self.disko.w_arr)
     def f(self, x):
         '''
             Find the power in the residual

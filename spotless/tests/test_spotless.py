@@ -3,20 +3,17 @@
 # License GPLv3
 #
 
-import unittest
-import logging
 import json
+import logging
+import unittest
 
 import numpy as np
-
-from spotless import source
-from spotless import Spotless
-
+from disko import DiSkO, HealpixSubSphere
+from tart.imaging import elaz
 from tart.operation import settings
 from tart_tools import api_imaging
-from tart.imaging import elaz
 
-from disko import DiSkO, HealpixSubSphere
+from spotless import Spotless, source
 
 logger = logging.getLogger(__name__)
 # Add a null handler so logs can go somewhere
@@ -53,7 +50,7 @@ class TestSpotless(unittest.TestCase):
 
         disko = DiSkO.from_cal_vis(cv)
 
-        sphere = HealpixSubSphere.from_resolution(
+        sphere = HealpixSubSphere(
             res_arcmin=60, theta=0, phi=0, radius_rad=np.radians(155))
 
         self.spot = Spotless(disko, sphere=sphere)
@@ -126,10 +123,10 @@ class TestSpotless(unittest.TestCase):
 
         # Now reconstruct
         for nside in [64, 128]:
-            sphere = HealpixSubSphere.from_resolution(nside=nside,
-                                                      theta=0, phi=0,
-                                                      radius_rad=np.radians(170))
-            self.spot.sphere=sphere
+            sphere = HealpixSubSphere(nside=nside,
+                                      theta=0, phi=0,
+                                      radius_rad=np.radians(170))
+            self.spot.sphere = sphere
             healpix_map, model_power, residual_power = self.spot.reconstruct()
             self.assertAlmostEqual(residual_power, 0.0, 2)
             self.assertAlmostEqual(model_power, src_power, 0)
@@ -152,9 +149,9 @@ class TestSpotless(unittest.TestCase):
 
         # Now reconstruct
         for nside in [64, 128]:
-            sphere = HealpixSubSphere.from_resolution(nside=nside,
-                                                      theta=0, phi=0,
-                                                      radius_rad=np.radians(170))
+            sphere = HealpixSubSphere(nside=nside,
+                                      theta=0, phi=0,
+                                      radius_rad=np.radians(170))
             self.spot.sphere=sphere
             healpix_map, model_power, residual_power = self.spot.reconstruct_direct()
             self.assertAlmostEqual(residual_power, 0.0, 2)

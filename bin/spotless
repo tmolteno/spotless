@@ -67,7 +67,7 @@ if __name__ == '__main__':
     
     sphere_parsers = sphere_args_parser()
 
-    parser = argparse.ArgumentParser(description='Generate an SPOTLESS using the web api of a TART radio telescope.', 
+    parser = argparse.ArgumentParser(description='Generate a SPOTLESS using the web api of a TART radio telescope.', 
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                     parents=sphere_parsers)
 
@@ -129,17 +129,17 @@ if __name__ == '__main__':
     logger.setLevel(logging.INFO)
 
     # create console handler and set level to debug
-    # ch = logging.StreamHandler()
-    # ch.setLevel(logging.INFO)
-    # 
-    # # create formatter
-    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # 
-    # # add formatter to ch
-    # ch.setFormatter(formatter)
-    # 
-    # # add ch to logger
-    # logger.addHandler(ch)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    
+    # create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    # add formatter to ch
+    ch.setFormatter(formatter)
+    
+    # add ch to logger
+    logger.addHandler(ch)
     
     if ARGS.version:
         version = pkg_resources.require("spotless")[0].version
@@ -226,6 +226,16 @@ if __name__ == '__main__':
         lat = config.get_lat()
         lon = config.get_lon()
         height = config.get_alt()
+
+    # CASAcore UVW is conjugated, so to make things consistent with data
+    # streaming off telescope we need the vis flipped about
+    if ARGS.ms:
+        disko.vis_arr = disko.vis_arr.conjugate()
+    elif ARGS.file:
+        disko.vis_arr = disko.vis_arr.conjugate()
+    else:
+        pass
+
 
     sphere.set_info(timestamp=timestamp,
                     lon=lon, lat=lat, height=height)
