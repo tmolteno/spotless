@@ -22,7 +22,7 @@ upload:
 TART_ARGS=--ms test_data/tart.ms --healpix --fov 160deg --res 30arcmin
 #TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
-	spotless  ${TART_ARGS} --multimodel --SVG
+	spotless  ${TART_ARGS} --SVG --title tart
 
 ms:
 	spotless ${TART_ARGS} --multimodel --HDF ms.hdf --SVG --title ms

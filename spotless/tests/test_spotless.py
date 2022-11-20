@@ -152,7 +152,7 @@ class TestSpotless(unittest.TestCase):
             sphere = HealpixSubSphere(nside=nside,
                                       theta=0, phi=0,
                                       radius_rad=np.radians(170))
-            self.spot.sphere=sphere
+            self.spot.sphere = sphere
             healpix_map, model_power, residual_power = self.spot.reconstruct_direct()
             self.assertAlmostEqual(residual_power, 0.0, 2)
             self.assertAlmostEqual(model_power, src_power, 0)

@@ -15,7 +15,7 @@ from .source import PointSource
 logger = logging.getLogger(__name__)
 # Add other handlers if you're using this as a library
 logger.addHandler(logging.NullHandler())
-
+logger.setLevel(logging.INFO)
 
 class MultiSpotless(Spotless):
 
@@ -28,7 +28,7 @@ class MultiSpotless(Spotless):
             so that the sum of the residual and the source visibilities
             is conserved.
         '''
-        d_el = np.radians(2.0)
+        d_el = self.disko.get_beam_width().radians()/2
 
         m_vis = self.model.model_vis(self.disko.u_arr,
                                      self.disko.v_arr, self.disko.w_arr)
@@ -53,14 +53,14 @@ class MultiSpotless(Spotless):
         #                 method='L-BFGS-B', bounds=bounds)
         fmin = minimize(self.f_n, x0.flatten(),
                         method='Nelder-mead', bounds=bounds)
-        p1 = fmin.fun
+        residual_power = fmin.fun
 
         self.model = Model.from_vector(fmin.x)
 
         self.residual_vis = self.vis_arr - \
             self.model.model_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
 
-        return self.model, p1, p0
+        return self.model, residual_power, p0
 
     def f_n(self, x):
         '''

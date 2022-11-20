@@ -32,6 +32,7 @@ from disko import Resolution
 logger = logging.getLogger(__name__)
 # Add other handlers if you're using this as a library
 logger.addHandler(logging.NullHandler())
+logger.setLevel(logging.INFO)
 
 
 def get_source_list(source_json, el_limit, jy_limit):
@@ -228,7 +229,8 @@ class Spotless(SpotlessBase):
             so that the sum of the residual and the source visibilities
             is conserved.
         '''
-        d_el = np.radians(1.5)
+        d_el = self.disko.get_beam_width().radians()/2
+
         a_0, el_0, az_0, p0 = self.estimate_initial_point_source(
             self.residual_vis)
         x0 = [0.1, el_0, az_0]
@@ -255,10 +257,11 @@ class Spotless(SpotlessBase):
     def add_source(self, src):
         logger.info("Adding source {}".format(src))
         self.model.add_source(src)
-        self.residual_vis -= self.get_src_vis(src)
+        # self.residual_vis -= self.get_src_vis(src)
         self.residual_vis = self.vis_arr - self.model.model_vis(self.disko.u_arr,
                                                                 self.disko.v_arr,
                                                                 self.disko.w_arr)
+
     def f(self, x):
         '''
             Find the power in the residual
@@ -272,11 +275,7 @@ class Spotless(SpotlessBase):
         logger.info("Reconstructing Image")
         sphere = self.sphere.copy()
 
-        max_u = np.max(self.disko.u_arr)
-        max_v = np.max(self.disko.v_arr)
-        max_w = np.max(self.disko.w_arr)
-
-        beam_width = Resolution.from_baseline(bl=np.max([max_u, max_v, max_w]), frequency=self.disko.frequency).radians()
+        beam_width = self.disko.get_beam_width().radians()
         logger.info(f"Resolution : {beam_width}")
 
         brightest_source = self.model.brightest()
@@ -291,6 +290,8 @@ class Spotless(SpotlessBase):
             if (i < sphere.npix):
                 sphere.pixels[i] += src.get_power()
                 total_source_power += src.get_power()
+            else:
+                raise RuntimeError(f"Index {i} >= {sphere.npix}")
 
         logger.info("Total Source power {}".format(total_source_power))
 
@@ -309,24 +310,24 @@ class Spotless(SpotlessBase):
 
         # Get the power
         model_map_power = sphere.get_power()
-        logger.info("model_pixel_map_power {} {} {}".format(model_map_power,
-                                                            total_source_power/model_map_power,
-                                                            model_map_power / total_source_power))
+        logger.info(f"model_pixel_map_power: {model_map_power}")
+        logger.info(f"   total_source_power: {total_source_power}")
 
         # Add the residual
         residual = self.sphere.copy()
         self.image_visibilities(self.residual_vis, residual)
         residual_power = self.power(self.residual_vis)
         SpotlessBase.scale_to_power(residual, residual_power)
+        logger.info(f"       residual_power: {residual_power}")
 
         combined = self.sphere.copy()
-        combined.set_visible_pixels(sphere.pixels + residual.pixels, scale=True)
+        combined.pixels = (sphere.pixels + residual.pixels)
         return combined, model_map_power, residual_power
 
     def reconstruct_err(self, nside):
         logger.info("Reconstructing Image")
 
-        beam_width = self.disko.beam_width().radians()
+        beam_width = self.disko.get_beam_width().radians()
 
         brightest_source = self.model.brightest()
         weakest_source = self.model.faintest()
