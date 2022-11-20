@@ -98,6 +98,9 @@ class SpotlessBase(object):
             logger.info("Step {}: Model {}".format(i, mod))
             logger.info("Residual Power {}, dp {}".format(power, p0-power))
         logger.info("Deconvolution Complete")
+        
+        for src in self.model:
+            src.power = self.vis_power(self.get_src_vis(src))
 
     def step(self):
         raise NotImplementedError("step is not implemented in the base class")
@@ -122,7 +125,7 @@ class SpotlessBase(object):
 
     def pixel_power(self, vis):
         sphere = self.sphere.copy()
-        self.image_visibilities(vis, sphere)
+        self.disko.image_visibilities(vis, sphere)
         return sphere.get_power()
 
     def vis_power(self, vis):

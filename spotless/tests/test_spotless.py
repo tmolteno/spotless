@@ -58,7 +58,7 @@ class TestSpotless(unittest.TestCase):
     def test_pixel_vis_power(self):
         vis_power = self.spot.vis_power(self.spot.residual_vis)
         pixel_power = self.spot.pixel_power(self.spot.residual_vis)
-        print(f"Vis power {vis_power}, pix {pixel_power}")
+        print(f"Vis power {vis_power}, pix {pixel_power}, npix={self.spot.sphere.npix}")
         self.assertAlmostEqual(vis_power/pixel_power, 1.0, 1)
 
     def test_single_vis_power(self):

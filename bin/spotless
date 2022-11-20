@@ -267,8 +267,10 @@ if __name__ == '__main__':
     spot.deconvolute()
 
     if should_make_images:
+        residual_sphere = sphere.copy()
+        spot.image_visibilities(spot.residual_vis, residual_sphere)
         spot.display(plt, src_list, sphere, ARGS.show_model)
-        handle_image(ARGS, None, "residual", time_repr, src_list, sphere)
+        handle_image(ARGS, None, "residual", time_repr, src_list, residual_sphere)
 
     reconstructed_sphere, src_power, residual_power = spot.reconstruct()
     if should_make_images:

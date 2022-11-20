@@ -34,7 +34,7 @@ class PointSource(object):
         ret["el"] = np.degrees(self.el)
         ret["az"] = np.degrees(self.az)
         if (self.power is not None):
-            ret["p"] = self.power
+            ret["p"] = float(self.power)
             # return "{p:None, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.a, np.degrees(self.el), np.degrees(self.az))
         # else:
             # return "{p:{:03.2f}, a:{:03.2f}, el:{:03.1f}, az:{:03.1f}},".format(self.power,
