@@ -36,7 +36,16 @@ At each step the new point source is located using a minimizer from the residual
       & = & \min_{A, \theta, \phi} E(V - A V_P(\theta, \phi))
 \end{eqnarray*}
 ```
-where $E(V)$ is the total power in the visibilities. So we find the point source that minimizes the remaining power.
+where $E(V)$ is the total energy in the visibilities. So we find the point source that minimizes the remaining energy.
+
+The nice thing is that the energy can be calculated directly from the visibilities, and so no gridding is required at all, either in image space or in visibility space.
+
+This is possible because the integral of the fourier transform (F.T.) of the visibilities can be calculated directly from the visibilities without the F.T. This is Parseval's Theorem, for the DFT it becomes
+```math
+\sum_{n=0}^{N-1} abs(x_n)^2 = (1/N) \sum_{k=0}{N-1} abs(X_k)**2
+```
+Thus as the visibilities are the F.T of the sky brightness, the sum of the absolute value of the visibilities is proportional
+to the energy in the 'image'
 
 
 ### MultiSpotless 

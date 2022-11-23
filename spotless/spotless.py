@@ -140,7 +140,7 @@ class SpotlessBase(object):
            sum_{n=0}^{N-1} abs(x_n)**2 = (1/N) sum_{k=0}{N-1} abs(X_k)**2
 
            Thus as the visibilities are the F.T of the sky brightness.
-           the mean of the abs of the visibilities is proportional
+           the sum of the abs of the visibilities is proportional
            to the power in the 'image'
         '''
         return np.real(np.sum(vis*np.conj(vis)))
