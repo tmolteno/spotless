@@ -294,7 +294,7 @@ class Spotless(SpotlessBase):
                 sphere.pixels[i] += src.get_power()
                 total_source_power += src.get_power()
             else:
-                raise RuntimeError(f"Index {i} >= {sphere.npix}")
+                raise RuntimeError(f"Index {i} >= {sphere.npix}, src={src}")
 
         logger.info("Total Source power {}".format(total_source_power))
 
