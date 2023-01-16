@@ -230,7 +230,7 @@ if __name__ == '__main__':
     # CASAcore UVW is conjugated, so to make things consistent with data
     # streaming off telescope we need the vis flipped about
     if ARGS.ms:
-        disko.vis_arr = disko.vis_arr.conjugate()
+        pass # disko.vis_arr = disko.vis_arr.conjugate()
     elif ARGS.file:
         disko.vis_arr = disko.vis_arr.conjugate()
     else:
