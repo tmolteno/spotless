@@ -1,5 +1,7 @@
 *model_*.json
 *.svg
+*.hdf
+callback*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
