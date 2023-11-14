@@ -1,5 +1,5 @@
 #
-# Copyright Tim Molteno 2017-2022 tim@elec.ac.nz
+# Copyright Tim Molteno 2017-2023 tim@elec.ac.nz
 #
 from setuptools import setup
 
@@ -7,7 +7,7 @@ with open('README.md') as f:
     readme = f.read()
 
 setup(name='spotless',
-      version='0.4.4',
+      version='0.4.5',
       description='Grid-Free Deconvolution Directly From Visibilities',
       long_description=readme,
       long_description_content_type="text/markdown",
