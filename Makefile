@@ -1,4 +1,4 @@
-VENVDIR=/home/tim/.tartvenv
+VENVDIR=~/.tartvenv
 
 develop: venv
 	${VENV}/pip3 install -e .
