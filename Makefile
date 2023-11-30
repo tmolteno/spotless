@@ -24,7 +24,7 @@ upload:
 TART_ARGS=--ms test_data/tart.ms --healpix --fov 180deg --res 60arcmin
 #TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
-	${VENV}/spotless  ${TART_ARGS} --SVG --title tart
+	${VENV}/spotless  ${TART_ARGS} --HDF tart.h5 --SVG --title tart
 
 ms:
 	${VENV}/spotless ${TART_ARGS} --ms test_data/test.ms --multimodel --HDF ms.hdf --SVG --title ms
@@ -36,9 +36,3 @@ draw:
 	${VENV}/disko_draw ms.hdf --show-sources --SVG ms.svg
 	
 include Makefile.venv
-
-$(VENV):
-	$(PY) -m venv --system-site-packages $(VENVDIR)
-#       $(PY) -m venv $(VENVDIR)
-	$(VENV)/python3 -m pip install --upgrade pip setuptools wheel
-
