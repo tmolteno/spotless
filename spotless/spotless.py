@@ -44,6 +44,7 @@ class SpotlessBase(object):
     def __init__(self, disko, sphere):
         self.disko = disko
         self.sphere = sphere
+        self.el_threshold_r = sphere.el_min_r
         self.vis_arr = np.array(self.disko.vis_arr)
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
@@ -238,7 +239,7 @@ class Spotless(SpotlessBase):
 
         bounds = []
         src = PointSource(0.1, el_0, az_0)
-        for b in src.get_bounds(d_el):
+        for b in src.get_bounds(d_el, self.el_threshold_r):
             logger.info(f"   Bound: {b}")
             bounds.append(b)
 
