@@ -9,8 +9,6 @@ import logging
 import numpy as np
 
 logger = logging.getLogger(__name__)
-# Add other handlers if you're using this as a library
-logger.addHandler(logging.NullHandler())
 
 
 def elaz2lmn(el_r, az_r):

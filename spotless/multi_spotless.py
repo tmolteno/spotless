@@ -13,9 +13,7 @@ from .model import Model
 from .source import PointSource
 
 logger = logging.getLogger(__name__)
-# Add other handlers if you're using this as a library
-logger.addHandler(logging.NullHandler())
-logger.setLevel(logging.INFO)
+
 
 class MultiSpotless(Spotless):
 
