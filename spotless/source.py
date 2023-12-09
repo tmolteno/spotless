@@ -14,6 +14,7 @@ from tart.util import constants
 
 logger = logging.getLogger(__name__)
 
+
 class PointSource(object):
     '''
     A single point source in el,az co-ordinates
@@ -73,12 +74,12 @@ class PointSource(object):
         '''
         logger.info(f" get_bounds({d_el}, {el_threshold_r})")
         d_az = np.abs(d_el/(np.cos(self.el) + 0.001))
-        
+
         el_lower = max(self.el - d_el, el_threshold_r)
         el_upper = max(el_threshold_r, self.el + d_el)
-        
+
         logger.info(f" Elevation: ({el_lower}, {el_upper})")
-        
+
         return [(0.0, None),
                 (el_lower, min(el_upper, np.pi/2)),
                 (self.az - d_az, self.az + d_az)]

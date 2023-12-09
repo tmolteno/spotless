@@ -27,8 +27,6 @@ from .model import Model
 from .source import PointSource
 from .sphere import get_peak
 
-from disko import Resolution
-
 logger = logging.getLogger(__name__)
 
 
