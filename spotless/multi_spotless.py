@@ -13,9 +13,7 @@ from .model import Model
 from .source import PointSource
 
 logger = logging.getLogger(__name__)
-# Add other handlers if you're using this as a library
-logger.addHandler(logging.NullHandler())
-logger.setLevel(logging.INFO)
+
 
 class MultiSpotless(Spotless):
 
@@ -42,11 +40,11 @@ class MultiSpotless(Spotless):
         # Get the bounds of the existing points. Each dimension is constrained appropriately
         bounds = []
         for src in self.model:
-            for b in src.get_bounds(d_el):
+            for b in src.get_bounds(d_el, self.el_threshold_r):
                 bounds.append(b)
 
         src = PointSource(0.1, el_0, az_0)
-        for b in src.get_bounds(d_el):
+        for b in src.get_bounds(d_el, self.el_threshold_r):
             bounds.append(b)
 
         # fmin = minimize(self.f_n, x0.flatten(),

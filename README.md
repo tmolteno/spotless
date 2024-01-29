@@ -101,6 +101,7 @@ in which case changes to the source-code will be immediately available to projec
 
 ## Changes
 
+* 0.4.6 Clean up logging. Use --debug to switch it on. Remove deprecated calls to verbose in healpy
 * 0.4.3 Use a common field of view parser with DiSkO
         Add --hdf <filename> option to save the output as an HDF
 * 0.4.2 Read from measurement sets --ms

@@ -30,9 +30,6 @@ from .sphere import get_peak
 from disko import Resolution
 
 logger = logging.getLogger(__name__)
-# Add other handlers if you're using this as a library
-logger.addHandler(logging.NullHandler())
-logger.setLevel(logging.INFO)
 
 
 def get_source_list(source_json, el_limit, jy_limit):
@@ -47,6 +44,7 @@ class SpotlessBase(object):
     def __init__(self, disko, sphere):
         self.disko = disko
         self.sphere = sphere
+        self.el_threshold_r = sphere.el_min_r
         self.vis_arr = np.array(self.disko.vis_arr)
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
@@ -98,7 +96,7 @@ class SpotlessBase(object):
             logger.info("Step {}: Model {}".format(i, mod))
             logger.info("Residual Power {}, dp {}".format(power, p0-power))
         logger.info("Deconvolution Complete")
-        
+
         for src in self.model:
             src.power = self.vis_power(self.get_src_vis(src))
 
@@ -241,7 +239,7 @@ class Spotless(SpotlessBase):
 
         bounds = []
         src = PointSource(0.1, el_0, az_0)
-        for b in src.get_bounds(d_el):
+        for b in src.get_bounds(d_el, self.el_threshold_r):
             logger.info(f"   Bound: {b}")
             bounds.append(b)
 
@@ -304,8 +302,7 @@ class Spotless(SpotlessBase):
         all_pixels[sphere.pixel_indices] = sphere.pixels
 
         model_pixel_map = hp.sphtfunc.smoothing(
-            all_pixels, fwhm=beam_width,
-            verbose=False)
+            all_pixels, fwhm=beam_width)
 
         # Scale the map so that the total pixel power is correct
         sphere.pixels = model_pixel_map[sphere.pixel_indices]
@@ -348,7 +345,7 @@ class Spotless(SpotlessBase):
         logger.info("Total Source power {}".format(total_source_power))
 
         model_pixel_map = hp.sphtfunc.smoothing(
-            sphere.pixels, fwhm=beam_width, verbose=False)
+            sphere.pixels, fwhm=beam_width)
         # Scale the map so that the total pixel power is correct
         model_pixel_map = np.sqrt(
             np.abs(model_pixel_map))*np.sqrt(len(sphere.pixels))

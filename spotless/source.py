@@ -4,6 +4,7 @@
 #
 
 import disko
+import logging
 
 import numpy as np
 import json
@@ -11,6 +12,7 @@ from . import sphere
 
 from tart.util import constants
 
+logger = logging.getLogger(__name__)
 
 class PointSource(object):
     '''
@@ -65,8 +67,18 @@ class PointSource(object):
             np.exp(-p2j*(u_arr*l + v_arr*m + w_arr*(n - 1.0)))
         return vis
 
-    def get_bounds(self, d_el):
+    def get_bounds(self, d_el, el_threshold_r=0):
+        '''
+            TODO check that the source remains inside the sphere.
+        '''
+        logger.info(f" get_bounds({d_el}, {el_threshold_r})")
         d_az = np.abs(d_el/(np.cos(self.el) + 0.001))
+        
+        el_lower = max(self.el - d_el, el_threshold_r)
+        el_upper = max(el_threshold_r, self.el + d_el)
+        
+        logger.info(f" Elevation: ({el_lower}, {el_upper})")
+        
         return [(0.0, None),
-                (max(self.el - d_el, 0), min(self.el + d_el, np.pi/2)),
+                (el_lower, min(el_upper, np.pi/2)),
                 (self.az - d_az, self.az + d_az)]

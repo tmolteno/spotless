@@ -1,8 +1,9 @@
-test:
-	pytest3
 
 develop:
-	python3 setup.py develop --user
+	pip3 install -e .
+
+test:
+	python3 -m pytest
 
 lint:
 	flake8 spotless --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
@@ -22,13 +23,13 @@ upload:
 TART_ARGS=--ms test_data/test.ms --nvis 8000 --healpix --fov 160deg --res 120arcmin
 #TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
-	spotless  ${TART_ARGS} --SVG --title tart
+	spotless  ${TART_ARGS} --HDF tart.h5 --SVG --title tart
 
 ms:
-	spotless ${TART_ARGS} --ms test_data/test.ms --multimodel --HDF ms.hdf --SVG --title ms
+	spotless ${TART_ARGS} --multimodel --HDF ms.hdf --SVG --title ms
 
 disko:
-	disko ${TART_ARGS} --ms test_data/test.ms --tikhonov --alpha 2 --SVG  --HDF disko.hdf --title disko
+	disko ${TART_ARGS} --tikhonov --alpha 2 --SVG  --HDF disko.hdf --title disko
 
 draw:
 	disko_draw ms.hdf --show-sources --SVG ms.svg
