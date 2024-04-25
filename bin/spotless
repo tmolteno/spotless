@@ -35,6 +35,7 @@ from tart2ms import get_array_location
 
 logger = logging.getLogger()
 
+
 def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
     """ This function manages the output of an image, drawing sources e.t.c."""
     image_title = f"{args.title}_{title}_{time_repr}"
@@ -43,22 +44,22 @@ def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
         fname = '{}.fits'.format(image_title)
         fpath = os.path.join(args.dir, fname)
         api_imaging.save_fits_image(img, fname=fname, out_dir=args.dir, timestamp=time_repr)
-        logger.info("Generating {}".format(fname))
+        print("Generating {}".format(fname))
     if args.PNG:
         fname = '{}.png'.format(image_title)
         fpath = os.path.join(args.dir, fname)
         plt.savefig(fpath, dpi=300)
-        logger.info("Generating {}".format(fname))
+        print("Generating {}".format(fname))
     if args.SVG:
         fname = f"{image_title}.svg"
         fpath = os.path.join(args.dir, fname)
         sphere.to_svg(fname=fname, show_grid=True, src_list=src_list, title=image_title)
-        logger.info("Generating {}".format(fname))
+        print("Generating {}".format(fname))
     if args.PDF:
         fname = '{}.pdf'.format(image_title)
         fpath = os.path.join(args.dir, fname)
         plt.savefig(fpath, dpi=600)
-        logger.info("Generating {}".format(fname))
+        print("Generating {}".format(fname))
     if args.display:
         plt.show()
 
@@ -154,7 +155,7 @@ if __name__ == '__main__':
 
         # add ch to logger
         logger.addHandler(ch)
-    
+
     if ARGS.version:
         version = version("spotless")
         print(f"spotless: Version {version}")
@@ -164,7 +165,7 @@ if __name__ == '__main__':
     sphere = sphere_from_args(ARGS)
 
     if ARGS.file:
-        logger.info("Getting Data from file: {}".format(ARGS.file))
+        print("Getting Data from file: {}".format(ARGS.file))
         # Load data from a JSON file
         with open(ARGS.file, 'r') as json_file:
             calib_info = json.load(json_file)
@@ -181,7 +182,7 @@ if __name__ == '__main__':
         gains = np.asarray(gains_json['gain'])
         phase_offsets = np.asarray(gains_json['phase_offset'])
         config = settings.from_api_json(info['info'], ant_pos)
-    
+
         measurements = []
         for d in calib_info['data']:
             vis_json, source_json = d
@@ -208,14 +209,14 @@ if __name__ == '__main__':
                               ddid=ARGS.ddid)
 
         timestamp = disko.timestamp
-        
+# 
         json_info = get_array_location(ARGS.ms)
         lat = json_info['lat']
         lon = json_info['lon']
-        height =json_info['height']
+        height = json_info['height']
 
     else:
-        logger.info("Getting Data from API: {}".format(ARGS.api))
+        print("Getting Data from API: {}".format(ARGS.api))
 
         api = api_handler.APIhandler(ARGS.api)
         config = api_handler.get_config(api)
@@ -235,9 +236,12 @@ if __name__ == '__main__':
                                       datestr=ts.isoformat())
             source_json = api.get_url(cat_url)
 
-        logger.info("Data Download Complete")
+        print("Data Download Complete")
 
-        cv, timestamp = api_imaging.vis_calibrated(vis_json, config, gains['gain'], gains['phase_offset'], flag_list=[])
+        cv, timestamp = api_imaging.vis_calibrated(vis_json, config,
+                                                   gains['gain'], 
+                                                   gains['phase_offset'],
+                                                   flag_list=[])
         disko = DiSkO.from_cal_vis(cv)
 
         lat = config.get_lat()
@@ -253,7 +257,6 @@ if __name__ == '__main__':
     else:
         pass
 
-
     sphere.set_info(timestamp=timestamp,
                     lon=lon, lat=lat, height=height)
 
@@ -261,21 +264,20 @@ if __name__ == '__main__':
 
     # Processing
     should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.SVG or ARGS.HDF
-    
-    
+
     if ARGS.multimodel:
         spot = MultiSpotless(disko, sphere)
     else:
         spot = Spotless(disko, sphere)
 
     src_list = get_source_list(source_json, el_limit=ARGS.elevation, jy_limit=1e4)
-    
+
     if should_make_images:
         plt.figure(figsize=(6, 6))
         spt = spot.display(plt=plt, src_list=src_list, sphere=sphere, show_model=ARGS.show_model)
         handle_image(ARGS, None, "gridless",
                      time_repr, src_list, sphere)
-    
+
     if ARGS.beam:
         spot.beam(plt, nside)
         handle_image(ARGS, None, "beam",
@@ -311,7 +313,7 @@ if __name__ == '__main__':
     model_dict["time"] = timestamp.isoformat()
     if ARGS.display:
         text = json.dumps(model_dict, sort_keys=True, indent=4,
-                    ensure_ascii=True)
+                          ensure_ascii=True)
         logger.info("Model {}".format(text))
 
     model_name = f"{ARGS.title}_model_{time_repr}.json"

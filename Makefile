@@ -20,7 +20,7 @@ upload:
 	python3 setup.py sdist
 	twine upload --repository pypi dist/*
 
-TART_ARGS=--ms test_data/test.ms --nvis 8000 --healpix --fov 160deg --res 120arcmin
+TART_ARGS=--ms test_data/tart.ms --nvis 8000 --healpix --fov 160deg --res 120arcmin --debug
 #TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
 	spotless  ${TART_ARGS} --HDF tart.h5 --SVG --title tart
