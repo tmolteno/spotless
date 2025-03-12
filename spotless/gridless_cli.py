@@ -18,9 +18,12 @@ from tart_tools import api_handler
 from tart_tools import api_imaging
 from tart.imaging import elaz
 
-from spotless import Spotless, get_source_list, MultiSpotless
+from .spotless import Spotless
+from .spotless import get_source_list
+
 
 logger = logging.getLogger()
+
 
 def handle_image(args, img, title, time_repr, src_list=None):
     """ This function manages the output of an image, drawing sources e.t.c."""
@@ -44,10 +47,17 @@ def handle_image(args, img, title, time_repr, src_list=None):
     if args.display:
         plt.show()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate an Gridless Image using the web api of a TART radio telescope.', 
-                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--api', required=False, default='https://tart.elec.ac.nz/signal', help="Telescope API server URL.")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Generate an all-sky TART Gridless Image',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument(
+        '--api', required=False,
+        default='https://tart.elec.ac.nz/signal',
+        help="Telescope API server URL.")
+
     parser.add_argument('--catalog', required=False, default='https://tart.elec.ac.nz/catalog', help="Catalog API URL.")
 
     parser.add_argument('--file', required=False, default=None, help="Snapshot ovservation saved JSON file (visiblities, positions and more).")
