@@ -958,7 +958,7 @@ description = "xarray Datasets from CASA Tables."
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "python_version >= \"3.13\""
+markers = "python_version >= \"3.12\""
 files = [
     {file = "dask-ms-0.2.12.tar.gz", hash = "sha256:371f2fae520c5044fea3333fde85449d232c9a350938847661f5b9bfe80f4cd7"},
     {file = "dask_ms-0.2.12-py3-none-any.whl", hash = "sha256:2bfefd9cd3ef638d48beaa3b51dde5d33974c315accb8cd5d4fda305042073c1"},
@@ -986,7 +986,7 @@ description = "xarray Dataset from CASA Tables"
 optional = false
 python-versions = "<3.13,>=3.9"
 groups = ["main"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\" or python_version == \"3.12\""
+markers = "python_version == \"3.10\" or python_version == \"3.11\""
 files = [
     {file = "dask_ms-0.2.21-py3-none-any.whl", hash = "sha256:9971736ad61eae537c9df7087e7d7121e33d3f13cf2732ee1b4b4c464120c881"},
     {file = "dask_ms-0.2.21.tar.gz", hash = "sha256:09a3b5823d37cf61bca5a8b03726123ff16cc7c57332b647162ce7f408cd8c91"},
@@ -2000,7 +2000,7 @@ description = "Fundamental package for array computing in Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version == \"3.10\" or python_version == \"3.11\" or python_version == \"3.12\""
+markers = "python_version == \"3.10\" or python_version == \"3.11\""
 files = [
     {file = "numpy-1.26.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9ff0f4f29c51e2803569d7a51c2304de5554655a60c5d776e35b4a41413830d0"},
     {file = "numpy-1.26.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2e4ee3380d6de9c9ec04745830fd9e2eccb3e6cf790d39d7b98ffd19b0dd754a"},
@@ -2047,7 +2047,7 @@ description = "Fundamental package for array computing in Python"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.13\""
+markers = "python_version >= \"3.12\""
 files = [
     {file = "numpy-2.2.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cbc6472e01952d3d1b2772b720428f8b90e2deea8344e854df22b0618e9cce71"},
     {file = "numpy-2.2.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:cdfe0c22692a30cd830c0755746473ae66c4a8f2e7bd508b35fb3b6a0813d787"},
@@ -3166,13 +3166,15 @@ tqdm = "*"
 
 [[package]]
 name = "tart2ms"
-version = "0.6.0b5"
+version = "0.6.0b7"
 description = "Convert TART observation data to Measurement Sets"
 optional = false
-python-versions = ">=3.8,<3.14"
+python-versions = "<3.14,>=3.8"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "tart2ms-0.6.0b7-py3-none-any.whl", hash = "sha256:707aef01c307adc5b570a4ff8b8bd67bb0a0bf288e339bbe4ac76459207ff1b8"},
+    {file = "tart2ms-0.6.0b7.tar.gz", hash = "sha256:14a5d684d091c5c21a46e894956eb9379fcf049de287dea44fc2442370e67da8"},
+]
 
 [package.dependencies]
 astropy = [
@@ -3182,10 +3184,10 @@ astropy = [
 ]
 dask = [
     {version = "<=2023.5.0", markers = "python_version < \"3.10\""},
-    {version = "<=2024.10.0", markers = "python_version >= \"3.10\" and python_version < \"3.13\""},
+    {version = "<=2024.10.0", markers = "python_version >= \"3.10\""},
 ]
 dask-ms = {version = "<=0.2.10", markers = "python_version < \"3.10\""}
-dask_ms = {version = "<=0.2.21", markers = "python_version >= \"3.10\" and python_version < \"3.13\""}
+dask_ms = {version = "<=0.2.21", markers = "python_version >= \"3.10\""}
 h5py = "*"
 numpy = [
     {version = "<=1.21.5", markers = "python_version < \"3.10\""},
@@ -3214,12 +3216,6 @@ tart_tools = "*"
 
 [package.extras]
 predict = ["codex-africanus (<=0.3.4) ; python_version < \"3.10\"", "codex-africanus (<=0.3.4) ; python_version == \"3.10\"", "codex-africanus (<=0.3.7) ; python_version == \"3.11\"", "numba (<=0.55.1) ; python_version < \"3.10\"", "numba (<=0.56.0) ; python_version == \"3.10\"", "numba (<=0.60.0) ; python_version == \"3.11\""]
-
-[package.source]
-type = "git"
-url = "https://github.com/tart-telescope/tart2ms"
-reference = "HEAD"
-resolved_reference = "48ab798959e53164c771b7900e951dbb9dd0407b"
 
 [[package]]
 name = "threadpoolctl"
@@ -3615,4 +3611,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.14"
-content-hash = "a9d40d859891ede2c471b6cf7755eb23cb153cd6bafe89fcc8509bebd3aea6b3"
+content-hash = "63c651b79f87345d17442667a818c9d6e7a40223991dcfccd86e5cff2aab7f18"
