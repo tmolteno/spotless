@@ -3,8 +3,8 @@
 # License GPLv3
 #
 
-import disko
 import logging
+from disko import jomega
 
 import numpy as np
 import json
@@ -63,7 +63,7 @@ class PointSource(object):
         '''
         l, m, n = sphere.elaz2lmn(self.el, self.az)
 
-        p2j = disko.jomega(constants.L1_FREQ)
+        p2j = jomega(constants.L1_FREQ)
         vis = self.a*self.a * \
             np.exp(-p2j*(u_arr*l + v_arr*m + w_arr*(n - 1.0)))
         return vis
