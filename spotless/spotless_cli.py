@@ -101,16 +101,17 @@ def main():
         "--ms", required=False, default=None, help="Measurement set"
     )
     data_group.add_argument(
-        "--data-column",
-        required=False,
-        default="DATA",
-        help="Measurement set column to image",
-    )
-    data_group.add_argument(
         "--vis",
         required=False,
         default=None,
         help="Use a local JSON file containing the visibilities.",
+    )
+
+    parser.add_argument(
+        "--column",
+        required=False,
+        default="DATA",
+        help="Measurement set column to image",
     )
 
     parser.add_argument(
@@ -262,9 +263,7 @@ def main():
         height = config.get_alt()
 
     elif ARGS.ms:
-        print(
-            f"Getting Data from MS file: {ARGS.ms}, column:{ARGS.data_column} to {sphere}"
-        )
+        print(f"Getting Data from MS file: {ARGS.ms}, column:{ARGS.column} to {sphere}")
 
         if not os.path.exists(ARGS.ms):
             raise RuntimeError(f"Measurement set {ARGS.ms} not found")
@@ -273,7 +272,7 @@ def main():
         logger.info(f"Min Res {min_res}")
         disko = disko_from_ms(
             ARGS.ms,
-            column=ARGS.data_column,
+            column=ARGS.column,
             num_vis=ARGS.nvis,
             res=min_res,
             channel=ARGS.channel,

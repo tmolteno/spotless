@@ -1,6 +1,6 @@
 [project]
 name = "spotless"
-version = "0.6.0"
+version = "0.6.1"
 description = "Grid-Free Deconvolution Directly From Visibilities"
 authors = [
     {name = "Tim Molteno",email = "tim@elec.ac.nz"}
