@@ -5,6 +5,7 @@
 * Migrate from Poetry to uv for package management and builds
 * Fix test imports and deprecated API calls
 * Fix add_source to use incremental subtraction
+* Improve optimization: use peak amplitude as initial guess, add Nelder-Mead tolerances
 
 ## 0.6.1
 
