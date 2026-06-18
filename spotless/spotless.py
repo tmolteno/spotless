@@ -17,10 +17,9 @@
 
 import logging
 
-from scipy.optimize import minimize
-import numpy as np
 import healpy as hp
-
+import numpy as np
+from scipy.optimize import minimize
 from tart.imaging import elaz
 
 from .model import Model
@@ -33,8 +32,7 @@ logger = logging.getLogger(__name__)
 def get_source_list(source_json, el_limit, jy_limit):
     src_list = []
     if source_json is not None:
-        src_list = elaz.from_json(
-            source_json, el_limit=el_limit, jy_limit=jy_limit)
+        src_list = elaz.from_json(source_json, el_limit=el_limit, jy_limit=jy_limit)
     return src_list
 
 
@@ -82,8 +80,7 @@ class SpotlessBase(object):
         self.plot(plt, sphere, src_list, show_model)
 
     def beam(self, plt, sphere):
-        self.image_visibilities(
-            np.ones_like(self.residual_vis), sphere)
+        self.image_visibilities(np.ones_like(self.residual_vis), sphere)
         self.plot(plt, sphere, src_list=None, show_model=False)
 
     def deconvolute(self):
@@ -92,7 +89,7 @@ class SpotlessBase(object):
             if power >= p0:
                 break
             logger.info("Step {}: Model {}".format(i, mod))
-            logger.info("Residual Power {}, dp {}".format(power, p0-power))
+            logger.info("Residual Power {}, dp {}".format(power, p0 - power))
         logger.info("Deconvolution Complete")
 
         for src in self.model:
@@ -103,17 +100,17 @@ class SpotlessBase(object):
 
     @staticmethod
     def scale_to_power(sphere, desired_power):
-        ''' Scale the sphere_pixels so that the pixel_power is in fact
-            equal to the desired_power. This is only used for the
-            reconstruction process where we use a synthesized beam from
-            each source (as the beam profile changes with angle in the sky
+        """Scale the sphere_pixels so that the pixel_power is in fact
+        equal to the desired_power. This is only used for the
+        reconstruction process where we use a synthesized beam from
+        each source (as the beam profile changes with angle in the sky
 
-            desired_pwer = np.sum((scaling*inpixels)**2)/N
-            N*desired_power = np.sum(scaling**2 * inpixels**2)
-            N*desired_power = scaling**2 * np.sum(inpixels**2)
-            scaling = np.sqrt(N*desired_power / np.sum(inpixels**2)
-                    = np.sqrt(desired_power / current_power)
-        '''
+        desired_pwer = np.sum((scaling*inpixels)**2)/N
+        N*desired_power = np.sum(scaling**2 * inpixels**2)
+        N*desired_power = scaling**2 * np.sum(inpixels**2)
+        scaling = np.sqrt(N*desired_power / np.sum(inpixels**2)
+                = np.sqrt(desired_power / current_power)
+        """
         logger.info(f"scale_to_power({sphere.pixels.shape}, {desired_power})")
         current_power = sphere.get_power()
         scaling = np.sqrt(desired_power / current_power)
@@ -125,29 +122,29 @@ class SpotlessBase(object):
         return sphere.get_power()
 
     def vis_power(self, vis):
-        '''Calculate the power in an image from a set of visibilities
-           This works because the integral of the fourier transform of the
-           visibilities can be calculated directly from the visibilities
-           without the FT.
-           https://courses.cit.cornell.edu/ece531/Lectures/chapter6.pdf
+        """Calculate the power in an image from a set of visibilities
+        This works because the integral of the fourier transform of the
+        visibilities can be calculated directly from the visibilities
+        without the FT.
+        https://courses.cit.cornell.edu/ece531/Lectures/chapter6.pdf
 
-           This is Parseval's Theorem, for the DFT it becomes
+        This is Parseval's Theorem, for the DFT it becomes
 
-           sum_{n=0}^{N-1} abs(x_n)**2 = (1/N) sum_{k=0}{N-1} abs(X_k)**2
+        sum_{n=0}^{N-1} abs(x_n)**2 = (1/N) sum_{k=0}{N-1} abs(X_k)**2
 
-           Thus as the visibilities are the F.T of the sky brightness.
-           the sum of the abs of the visibilities is proportional
-           to the power in the 'image'
-        '''
-        return np.real(np.sum(vis*np.conj(vis)))
+        Thus as the visibilities are the F.T of the sky brightness.
+        the sum of the abs of the visibilities is proportional
+        to the power in the 'image'
+        """
+        return np.real(np.sum(vis * np.conj(vis)))
 
     def power(self, vis):
         return self.vis_power(vis)
 
     def estimate_initial_point_source(self, vis):
-        ''' Estimate an initial point source for the model. This is effectively a brute
-            force search over the surface of the sphere
-        '''
+        """Estimate an initial point source for the model. This is effectively a brute
+        force search over the surface of the sphere
+        """
         sphere = self.sphere.copy()
         self.image_visibilities(vis, sphere)
         a_0, el_0, az_0 = get_peak(sphere)
@@ -156,18 +153,18 @@ class SpotlessBase(object):
         return a_0, el_0, az_0, p0
 
     def get_src_vis(self, src):
-        ''' Return the visibility from a single point source
-            TODO Incorporate the telescope beam (fringe washing)
-        '''
+        """Return the visibility from a single point source
+        TODO Incorporate the telescope beam (fringe washing)
+        """
         return src.get_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
 
     def reconstruct_direct(self):
-        ''' Reconstruct the image
+        """Reconstruct the image
 
-            Use a thresholded beam from each source as the reconstruction beam. This
-            works with non-planar antenna arrays (in which case the beam from each source
-            will depend on direction
-        '''
+        Use a thresholded beam from each source as the reconstruction beam. This
+        works with non-planar antenna arrays (in which case the beam from each source
+        will depend on direction
+        """
         logger.info("Reconstructing Image")
 
         brightest_source = self.model.brightest()
@@ -189,7 +186,7 @@ class SpotlessBase(object):
 
             # Threshold the src_map to be the central peak
             smap = np.abs(src_map.pixels)
-            cutoff = np.max(smap)/2
+            cutoff = np.max(smap) / 2
             low_value_flags = smap < cutoff
             smap[low_value_flags] = 0
 
@@ -218,20 +215,18 @@ class SpotlessBase(object):
 
 
 class Spotless(SpotlessBase):
-
     def __init__(self, disko, sphere):
         super(Spotless, self).__init__(disko, sphere)
 
     def step(self):
-        '''
-            Return a list of residual visibilities and a source location
-            so that the sum of the residual and the source visibilities
-            is conserved.
-        '''
-        d_el = self.disko.get_beam_width().radians()/2
+        """
+        Return a list of residual visibilities and a source location
+        so that the sum of the residual and the source visibilities
+        is conserved.
+        """
+        d_el = self.disko.get_beam_width().radians() / 2
 
-        a_0, el_0, az_0, p0 = self.estimate_initial_point_source(
-            self.residual_vis)
+        a_0, el_0, az_0, p0 = self.estimate_initial_point_source(self.residual_vis)
         x0 = [0.1, el_0, az_0]
         logger.info(f"x0 {x0}")
 
@@ -241,12 +236,12 @@ class Spotless(SpotlessBase):
             logger.info(f"   Bound: {b}")
             bounds.append(b)
 
-        fmin = minimize(self.f, x0, method='Nelder-mead', bounds=bounds)
+        fmin = minimize(self.f, x0, method="Nelder-mead", bounds=bounds)
         logger.info(f"fmin {fmin} fun={fmin.fun}")
         a, el, az = fmin.x
         p1 = fmin.fun
         src = PointSource(a, el, az)
-        src.power = (p0 - p1)
+        src.power = p0 - p1
         logger.info("Source Power {} {}".format(src.get_power(), np.sqrt(a)))
         if src.a > 0.0:
             self.add_source(src)
@@ -256,15 +251,12 @@ class Spotless(SpotlessBase):
     def add_source(self, src):
         logger.info("Adding source {}".format(src))
         self.model.add_source(src)
-        # self.residual_vis -= self.get_src_vis(src)
-        self.residual_vis = self.vis_arr - self.model.model_vis(self.disko.u_arr,
-                                                                self.disko.v_arr,
-                                                                self.disko.w_arr)
+        self.residual_vis -= self.get_src_vis(src)
 
     def f(self, x):
-        '''
-            Find the power in the residual
-        '''
+        """
+        Find the power in the residual
+        """
         src = PointSource(a=x[0], el=x[1], az=x[2])
         pt_vis = self.get_src_vis(src)
 
@@ -286,7 +278,7 @@ class Spotless(SpotlessBase):
         sphere.pixels *= 0
         for src in self.model:
             i = sphere.index_of(src.el, src.az)
-            if (i < sphere.npix):
+            if i < sphere.npix:
                 sphere.pixels[i] += src.get_power()
                 total_source_power += src.get_power()
             else:
@@ -299,8 +291,7 @@ class Spotless(SpotlessBase):
         all_pixels = np.zeros(all_npix) + hp.UNSEEN
         all_pixels[sphere.pixel_indices] = sphere.pixels
 
-        model_pixel_map = hp.sphtfunc.smoothing(
-            all_pixels, fwhm=beam_width)
+        model_pixel_map = hp.sphtfunc.smoothing(all_pixels, fwhm=beam_width)
 
         # Scale the map so that the total pixel power is correct
         sphere.pixels = model_pixel_map[sphere.pixel_indices]
@@ -319,7 +310,7 @@ class Spotless(SpotlessBase):
         logger.info(f"       residual_power: {residual_power}")
 
         combined = self.sphere.copy()
-        combined.pixels = (sphere.pixels + residual.pixels)
+        combined.pixels = sphere.pixels + residual.pixels
         return combined, model_map_power, residual_power
 
     def reconstruct_err(self, nside):
@@ -342,18 +333,21 @@ class Spotless(SpotlessBase):
 
         logger.info("Total Source power {}".format(total_source_power))
 
-        model_pixel_map = hp.sphtfunc.smoothing(
-            sphere.pixels, fwhm=beam_width)
+        model_pixel_map = hp.sphtfunc.smoothing(sphere.pixels, fwhm=beam_width)
         # Scale the map so that the total pixel power is correct
-        model_pixel_map = np.sqrt(
-            np.abs(model_pixel_map))*np.sqrt(len(sphere.pixels))
+        model_pixel_map = np.sqrt(np.abs(model_pixel_map)) * np.sqrt(len(sphere.pixels))
 
         # Get the power
         model_map_power = Spotless.power_from_pixels(
-            model_pixel_map[sphere.pixel_indices])
-        logger.info("model_pixel_map_power {} {} {}".format(model_map_power,
-                                                            total_source_power/model_map_power,
-                                                            model_map_power / total_source_power))
+            model_pixel_map[sphere.pixel_indices]
+        )
+        logger.info(
+            "model_pixel_map_power {} {} {}".format(
+                model_map_power,
+                total_source_power / model_map_power,
+                model_map_power / total_source_power,
+            )
+        )
 
         # Add the residual
         residual = sphere.copy()
