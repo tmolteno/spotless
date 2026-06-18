@@ -3,6 +3,8 @@
 ## 0.7.0
 
 * Migrate from Poetry to uv for package management and builds
+* Fix test imports and deprecated API calls
+* Fix add_source to use incremental subtraction
 
 ## 0.6.1
 
