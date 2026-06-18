@@ -1,0 +1,355 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+\title{Spotless: Grid-Free Deconvolution\\for Radio Interferometry}
+\author{Tim Molteno\\
+\texttt{tim@elec.ac.nz}}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Spotless is a point-source deconvolution algorithm for radio interferometry
+that operates directly in visibility space, without gridding. By exploiting
+Parseval's theorem, the total energy in the image can be computed from the
+visibilities without performing a Fourier transform. Spotless builds a model
+of the sky as a sum of point sources by minimising the residual energy. This
+approach handles non-coplanar baselines and all-sky fields of view without
+requiring $w$-projection or other wide-field corrections. Two variants are
+presented: sequential spotless (analogous to CLEAN) and MultiSpotless, which
+jointly optimises all model components.
+\end{abstract}
+
+%=============================================================================
+\section{Introduction}
+%=============================================================================
+
+Radio interferometers measure the complex visibility function
+$V(u, v, w)$, which is related to the sky brightness distribution
+$I(l, m)$ through the van~Cittert--Zernike theorem~\cite{thompson2017}:
+%
+\begin{equation}
+V(u, v, w) = \iint \frac{I(l, m)}{\sqrt{1 - l^2 - m^2}}
+             \, e^{-2\pi j [ul + vm + w(\sqrt{1-l^2-m^2} - 1)]}
+             \, dl \, dm.
+\label{eq:vcz}
+\end{equation}
+%
+Here $(l, m, n)$ are direction cosines relative to the phase centre, and
+$(u, v, w)$ are baseline coordinates in wavelengths.
+
+Traditional imaging pipelines grid the visibilities onto a regular
+$(u,v)$-plane and apply a Fast Fourier Transform (FFT) to produce a
+dirty image. The CLEAN algorithm~\cite{hogbom1974} then deconvolves the
+dirty image by iteratively subtracting scaled copies of the dirty beam.
+Variants such as the Cotton--Schwab algorithm~\cite{schwab1984} perform
+the subtraction in visibility space to reduce aliasing artefacts.
+
+However, gridding introduces several complications: $w$-terms cause
+distortions for non-coplanar arrays; all-sky imaging requires careful
+treatment of the horizon; and wide-field imaging suffers from
+direction-dependent effects that are difficult to model on a
+regular grid.
+
+Spotless avoids gridding entirely by working directly with the
+visibilities. The key insight is Parseval's theorem: the total energy
+(power) of an image can be computed from the visibilities without
+performing a Fourier transform. This enables a model-fitting approach
+where point sources are located and characterised by minimising the
+residual visibility energy.
+
+%=============================================================================
+\section{Theory}
+%=============================================================================
+
+\subsection{Point-Source Visibility}
+
+A point source at direction cosines $(l, m)$ with brightness $A$
+produces a visibility:
+%
+\begin{equation}
+V_P(u, v, w) = A^2 \, e^{-2\pi j [ul + vm + w(n-1)]},
+\label{eq:ptvis}
+\end{equation}
+%
+where $n = \sqrt{1 - l^2 - m^2}$. In the Spotless implementation,
+the source position is parameterised in elevation--azimuth coordinates
+$(\theta, \phi)$ rather than $(l, m)$, with the conversion:
+%
+\begin{align}
+l &= \sin\phi \cos\theta, \\
+m &= \cos\phi \cos\theta, \\
+n &= \sin\theta.
+\label{eq:lmn}
+\end{align}
+
+%-----------------------------------------------------------------------------
+\subsection{Energy in Visibility Space}
+%-----------------------------------------------------------------------------
+
+For discrete visibilities $v_k$ measured at $M$ baseline points,
+Parseval's theorem for the Discrete Fourier Transform states:
+%
+\begin{equation}
+\sum_{n=0}^{N-1} |x_n|^2 = \frac{1}{N} \sum_{k=0}^{N-1} |X_k|^2,
+\end{equation}
+%
+where $x_n$ is the image and $X_k$ is its Fourier transform. Since the
+visibilities are samples of the Fourier transform of the sky brightness,
+the total energy $E(V)$ in the image is proportional to the sum of
+squared visibility amplitudes:
+%
+\begin{equation}
+E(V) \propto \sum_{k=0}^{M-1} v_k v_k^*.
+\label{eq:energy}
+\end{equation}
+%
+No gridding or inverse Fourier transform is required to compute this
+quantity---it is evaluated directly from the visibility data.
+
+%-----------------------------------------------------------------------------
+\subsection{Sequential Spotless}
+%-----------------------------------------------------------------------------
+
+The sequential Spotless algorithm builds a model of $N$ point sources by
+iteratively finding and subtracting the brightest remaining source.
+Beginning with the measured visibilities $V^{(0)} = V$, each step
+$i = 0, 1, \dots$ solves:
+%
+\begin{equation}
+(A_i, \theta_i, \phi_i) =
+\underset{A,\theta,\phi}{\arg\min}\;
+E\bigl(V^{(i)} - A^2 V_P(\theta, \phi)\bigr),
+\label{eq:step}
+\end{equation}
+%
+where $V_P(\theta, \phi)$ is the unit-amplitude point-source visibility
+from equation~\eqref{eq:ptvis}. The source is added to the model and
+subtracted from the residual:
+%
+\begin{align}
+\mathcal{M} &\leftarrow \mathcal{M} \cup \{(A_i, \theta_i, \phi_i)\}, \\
+V^{(i+1)} &= V^{(i)} - A_i^2 V_P(\theta_i, \phi_i).
+\end{align}
+%
+The algorithm terminates when the residual energy stops decreasing,
+i.e., when $E(V^{(i+1)}) \geq E(V^{(i)})$.
+
+The cost function in equation~\eqref{eq:step} is a smooth function of
+three parameters $(A, \theta, \phi)$. The optimisation is performed using
+the L-BFGS-B algorithm~\cite{byrd1995}, a quasi-Newton method that
+supports bound constraints and uses a limited-memory Hessian
+approximation. An initial guess is obtained by imaging the current
+residual onto a HEALPix sphere~\cite{gorski2005} and locating the
+brightest pixel.
+
+%-----------------------------------------------------------------------------
+\subsection{MultiSpotless}
+%-----------------------------------------------------------------------------
+
+MultiSpotless extends the sequential approach by jointly re-optimising
+all model components at each step. After $i$ sources have been found,
+the $(i+1)$-th step solves the full $3(i+1)$-dimensional problem:
+%
+\begin{equation}
+\underset{\{A_k,\theta_k,\phi_k\}_{k=0}^{i}}
+{\arg\min}\;
+E\bigl(V - \sum_{k=0}^{i} A_k^2 V_P(\theta_k, \phi_k)\bigr).
+\label{eq:multistep}
+\end{equation}
+%
+This allows existing sources to be refined as new ones are added,
+potentially yielding a more accurate model at the cost of increased
+computational complexity. Because the full parameter space mixes
+amplitudes and angles at very different scales, MultiSpotless employs
+the Nelder--Mead simplex algorithm~\cite{nelder1965} with adaptive
+parameters, which is derivative-free and robust to poor scaling.
+
+%=============================================================================
+\section{Algorithm}
+%=============================================================================
+
+\begin{algorithm}[htbp]
+\caption{Sequential Spotless}
+\label{alg:spotless}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Visibilities $V$, field-of-view sphere $\mathcal{S}$
+\State $\mathcal{M} \leftarrow \emptyset$
+\State $V_{\text{res}} \leftarrow V$
+\State $E_0 \leftarrow \infty$
+\Repeat
+    \State Image $V_{\text{res}}$ onto $\mathcal{S}$
+    \State $(A_0, \theta_0, \phi_0) \leftarrow \text{peak of image}$
+    \State $x_0 \leftarrow [A_0, \theta_0, \phi_0]$
+    \State $x^* \leftarrow \arg\min_x E(V_{\text{res}} - V_P(x))$
+    \State $(A, \theta, \phi) \leftarrow x^*$
+    \State $E_1 \leftarrow E(V_{\text{res}} - A^2 V_P(\theta, \phi))$
+    \If{$E_1 \geq E_0$} \textbf{break} \EndIf
+    \State $\mathcal{M} \leftarrow \mathcal{M} \cup \{(A, \theta, \phi)\}$
+    \State $V_{\text{res}} \leftarrow V_{\text{res}} - A^2 V_P(\theta, \phi)$
+    \State $E_0 \leftarrow E_1$
+\Until{max iterations}
+\State \textbf{return} $\mathcal{M}$, $V_{\text{res}}$
+\end{algorithmic}
+\end{algorithm}
+
+The MultiSpotless variant replaces the single-source optimisation
+(line~8) with a joint optimisation over all model parameters as in
+equation~\eqref{eq:multistep}.
+
+%=============================================================================
+\section{Implementation}
+%=============================================================================
+
+Spotless is implemented in Python and distributed as the
+\texttt{spotless} package. Key design features include:
+
+\begin{itemize}[leftmargin=*,nosep]
+    \item \textbf{Grid-free operation.} All computations are performed
+          directly on the visibility data; no gridding or degridding steps
+          are required.
+    \item \textbf{All-sky support.} The field of view is represented as a
+          HEALPix sphere, enabling natural handling of wide-field and
+          all-sky observations.
+    \item \textbf{Non-coplanar baselines.} The full $(u, v, w)$ baseline
+          coordinates are used in the point-source visibility calculation
+          (equation~\ref{eq:ptvis}), avoiding the need for $w$-projection.
+    \item \textbf{Plug-and-play data sources.} Spotless accepts
+          visibilities from a TART telescope API, from JSON snapshot
+          files, or from CASA measurement sets (via \texttt{disko}).
+    \item \textbf{Multiple output formats.} Reconstructed images can be
+          exported as FITS, PNG, SVG, PDF, or HDF5.
+\end{itemize}
+
+The initial peak search and image reconstruction use the HEALPix
+pixelisation scheme. Beam smoothing during reconstruction is performed
+with the \texttt{healpy} spherical harmonic transform.
+
+%=============================================================================
+\section{Results}
+%=============================================================================
+
+Figure~\ref{fig:results} shows a comparison between a dirty image and
+a Spotless reconstruction from TART telescope data. Spotless produces a
+clean point-source model with substantially reduced sidelobe artefacts.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.45\textwidth]{../img/gridless.png}
+\hfill
+\includegraphics[width=0.45\textwidth]{../img/spotless.png}
+\caption{Left: dirty (gridless) image. Right: Spotless reconstruction
+         showing the deconvolved point-source model.}
+\label{fig:results}
+\end{figure}
+
+%=============================================================================
+\section{Discussion}
+%=============================================================================
+
+\subsection{Advantages over CLEAN}
+
+Spotless offers several advantages over traditional CLEAN-based methods:
+%
+\begin{enumerate}[leftmargin=*,nosep]
+    \item No gridding artefacts---the model is fit directly to the
+          visibility data.
+    \item No requirement for a regular $(u,v)$ sampling.
+    \item Natural handling of non-coplanar baselines via the full
+          $(u, v, w)$ phase term.
+    \item All-sky fields of view are handled without special treatment.
+    \item The model is a compact parametric representation (list of point
+          sources) rather than a pixel map.
+\end{enumerate}
+
+\subsection{Limitations and Future Work}
+
+\begin{itemize}[leftmargin=*,nosep]
+    \item \textbf{Point-source assumption.} Spotless models the sky as a
+          collection of point sources. Extended emission is not well
+          represented. Future work could incorporate Gaussian or
+          shapelet source models.
+    \item \textbf{Antenna beam.} The current implementation assumes an
+          isotropic hemispherical antenna response. Incorporating a
+          direction-dependent beam model would improve accuracy,
+          particularly at low elevations.
+    \item \textbf{Uncertainty quantification.} Running a Markov Chain
+          Monte Carlo (MCMC) sampler on the MultiSpotless model would
+          provide uncertainty estimates for source parameters and a
+          natural stopping criterion based on posterior precision.
+    \item \textbf{Computational cost.} MultiSpotless scales as
+          $\mathcal{O}(N^2)$ in the number of sources due to the joint
+          optimisation. Block-coordinate descent or alternating
+          optimisation could reduce this cost.
+\end{itemize}
+
+%=============================================================================
+\section{Conclusion}
+%=============================================================================
+
+Spotless provides a grid-free approach to radio interferometric
+deconvolution by exploiting Parseval's theorem to compute image energy
+directly from visibilities. By fitting a point-source model through
+energy minimisation, it avoids the gridding and degridding steps
+required by traditional imaging pipelines. The sequential variant offers
+speed comparable to CLEAN, while MultiSpotless provides improved
+accuracy through joint optimisation. The method is particularly
+well-suited to all-sky imaging with non-coplanar arrays.
+
+%=============================================================================
+\bibliographystyle{plain}
+\begin{thebibliography}{10}
+
+\bibitem{thompson2017}
+A.~R. Thompson, J.~M. Moran, and G.~W. Swenson Jr.,
+\emph{Interferometry and Synthesis in Radio Astronomy}, 3rd ed.
+Springer, 2017.
+
+\bibitem{hogbom1974}
+J.~A. H\"{o}gbom,
+``Aperture synthesis with a non-regular distribution of interferometer baselines,''
+\emph{Astronomy \& Astrophysics Supplement Series}, vol.~15, pp.~417--426, 1974.
+
+\bibitem{schwab1984}
+F.~R. Schwab,
+``Relaxing the isoplanatism assumption in self-calibration;
+applications to low-frequency radio interferometry,''
+\emph{The Astronomical Journal}, vol.~89, pp.~1076--1081, 1984.
+
+\bibitem{byrd1995}
+R.~H. Byrd, P.~Lu, J.~Nocedal, and C.~Zhu,
+``A limited memory algorithm for bound constrained optimization,''
+\emph{SIAM Journal on Scientific Computing}, vol.~16, no.~5,
+pp.~1190--1208, 1995.
+
+\bibitem{nelder1965}
+J.~A. Nelder and R.~Mead,
+``A simplex method for function minimization,''
+\emph{The Computer Journal}, vol.~7, no.~4, pp.~308--313, 1965.
+
+\bibitem{gorski2005}
+K.~M. G\'{o}rski, E.~Hivon, A.~J. Banday, \emph{et al.},
+``HEALPix: A framework for high-resolution discretization and fast
+analysis of data distributed on the sphere,''
+\emph{The Astrophysical Journal}, vol.~622, no.~2, pp.~759--771, 2005.
+
+\bibitem{parceval}
+A.~V. Oppenheim and R.~W. Schafer,
+\emph{Discrete-Time Signal Processing}, 3rd ed.
+Pearson, 2010.
+
+\end{thebibliography}
+
+\end{document}
