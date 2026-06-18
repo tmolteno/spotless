@@ -4,35 +4,29 @@
 # License GPLv3
 #
 
-import matplotlib
 import os
+
+import matplotlib
 
 if os.name == "posix" and "DISPLAY" not in os.environ:
     matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
 import argparse
 import json
 import logging
 import sys
-
-from importlib.metadata import version
 from copy import deepcopy
-from disko import DiSkO, sphere_from_args, sphere_args_parser, disko_from_ms
+from importlib.metadata import version as pkg_version
 
+import matplotlib.pyplot as plt
 import numpy as np
-
-from tart.operation import settings
-
-from tart_tools import api_handler
-from tart_tools import api_imaging
-from tart.imaging import elaz
-
-from .spotless import Spotless
-from .spotless import get_source_list
-from .multi_spotless import MultiSpotless
-
+from disko import DiSkO, disko_from_ms, sphere_args_parser, sphere_from_args
 from disko.ms_helper import get_array_location
+from tart.imaging import elaz
+from tart.operation import settings
+from tart_tools import api_handler, api_imaging
+
+from .multi_spotless import MultiSpotless
+from .spotless import Spotless, get_source_list
 
 logger = logging.getLogger()
 
@@ -222,8 +216,8 @@ def main():
         logger.addHandler(ch)
 
     if ARGS.version:
-        version = version("spotless")
-        print(f"spotless: Version {version}")
+        ver = pkg_version("spotless")
+        print(f"spotless: Version {ver}")
         print("          (c) 2022-2023 Tim Molteno")
         sys.exit(0)
 
