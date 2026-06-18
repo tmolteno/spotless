@@ -240,9 +240,9 @@ class Spotless(SpotlessBase):
         fmin = minimize(
             self.f,
             x0,
-            method="Nelder-Mead",
+            method="L-BFGS-B",
             bounds=bounds,
-            options={"xatol": 1e-3, "fatol": 0.1},
+            options={"ftol": 1e-6, "gtol": 1e-5, "maxiter": 100},
         )
         logger.info(f"fmin {fmin} fun={fmin.fun}")
         a, el, az = fmin.x

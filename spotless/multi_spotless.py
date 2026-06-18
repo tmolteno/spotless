@@ -47,14 +47,12 @@ class MultiSpotless(Spotless):
         for b in src.get_bounds(d_el, self.el_threshold_r):
             bounds.append(b)
 
-        # fmin = minimize(self.f_n, x0.flatten(),
-        #                 method='L-BFGS-B', bounds=bounds)
         fmin = minimize(
             self.f_n,
             x0.flatten(),
-            method="Nelder-Mead",
+            method="L-BFGS-B",
             bounds=bounds,
-            options={"xatol": 1e-3, "fatol": 0.1},
+            options={"ftol": 1e-6, "gtol": 1e-5, "maxiter": 100},
         )
         residual_power = fmin.fun
 
