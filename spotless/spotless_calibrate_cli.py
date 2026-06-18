@@ -3,7 +3,7 @@
     Calibrate the Telescope from the RESTful API
     using the spotless imaging algorithm
 
-    Tim Molteno 2017-2025.
+    Tim Molteno 2017-2026.
 """
 import sys
 import json

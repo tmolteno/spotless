@@ -164,7 +164,7 @@ def main():
     if ARGS.version:
         ver = pkg_version("spotless")
         print(f"gridless: Version {ver}")
-        print("          (c) 2022-2023 Tim Molteno")
+        print("          (c) 2022-2026 Tim Molteno")
         sys.exit(0)
 
     if ARGS.file:

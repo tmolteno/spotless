@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright Tim Molteno 2017-2022 tim@elec.ac.nz
+# Copyright Tim Molteno 2017-2026 tim@elec.ac.nz
 # License GPLv3
 #
 
@@ -218,7 +218,7 @@ def main():
     if ARGS.version:
         ver = pkg_version("spotless")
         print(f"spotless: Version {ver}")
-        print("          (c) 2022-2023 Tim Molteno")
+        print("          (c) 2022-2026 Tim Molteno")
         sys.exit(0)
 
     sphere = sphere_from_args(ARGS)

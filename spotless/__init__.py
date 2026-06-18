@@ -1,5 +1,5 @@
 #
-# Copyright Tim Molteno 2017 tim@elec.ac.nz
+# Copyright Tim Molteno 2017-2026 tim@elec.ac.nz
 #
 # Init for the spotless imaging algorithm
 

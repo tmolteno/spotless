@@ -12,7 +12,7 @@
 # Future Changes:
 # Add a gaussial source model (rather than a point source).
 #
-# Tim Molteno 2017-2022 tim@elec.ac.nz
+# Tim Molteno 2017-2026 tim@elec.ac.nz
 #
 
 import logging

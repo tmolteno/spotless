@@ -79,6 +79,81 @@ tart_tools is available from standard python package repositories. Try:
     spotless --api https://tart.elec.ac.nz/signal --display --show-sources
     gridless --api https://tart.elec.ac.nz/signal --display --show-sources
 
+## Command Line Usage
+
+### Data Sources
+
+Spotless can read visibilities from three sources:
+
+| Source | Flag | Example |
+|--------|------|---------|
+| TART API | `--api` | `spotless --api https://tart.elec.ac.nz/signal` |
+| CASA Measurement Set | `--ms` | `spotless --ms test_data/test.ms` |
+| JSON snapshot file | `--file` | `spotless --file observation.json` |
+
+### Imaging Options
+
+```
+  --fov FOV             Field of view (e.g., 160deg)
+  --res RES             Resolution (e.g., 120arcmin)
+  --healpix             Use HEALPix pixelisation
+  --nvis NVIS           Number of visibilities to use (default: 1000)
+  --channel CHANNEL     Frequency channel (default: 0)
+```
+
+### Output Formats
+
+```
+  --display             Show image interactively
+  --PNG                 Save as PNG
+  --SVG                 Save as SVG
+  --PDF                 Save as PDF
+  --fits                Save as FITS
+  --HDF FILENAME        Save field of view as HDF5
+  --dir DIR             Output directory (default: .)
+  --title TITLE         Prefix for output filenames
+```
+
+### Algorithms
+
+| Flag | Description |
+|------|-------------|
+| (default) | Sequential Spotless — finds one source at a time |
+| `--multimodel` | MultiSpotless — jointly optimises all sources |
+
+### Other Flags
+
+```
+  --show-sources        Overlay known sources from catalog
+  --show-model          Show the model source locations
+  --elevation ELEV      Elevation limit for source display (degrees, default: 20)
+  --beam                Generate a dirty beam image
+  --version             Print version and exit
+  --debug               Enable debug logging
+```
+
+### Examples
+
+```sh
+# Image a measurement set with MultiSpotless, save as SVG
+spotless --ms test_data/test.ms --healpix --fov 160deg --res 120arcmin \
+    --multimodel --SVG --title my_source
+
+# Live all-sky imaging from the TART telescope
+spotless --api https://tart.elec.ac.nz/signal --display --show-sources \
+    --healpix --fov 180deg --res 60arcmin
+
+# Calibrate using the spotless model
+spotless_calibrate --api https://tart.elec.ac.nz/signal
+```
+
+## Documentation
+
+A LaTeX article describing the algorithm in detail is available in `doc/spotless.tex`.
+Build with:
+
+    cd doc && make
+
 ## TODO
 
 * Add Gaussian Source Model
