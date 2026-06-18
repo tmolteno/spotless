@@ -227,16 +227,23 @@ class Spotless(SpotlessBase):
         d_el = self.disko.get_beam_width().radians() / 2
 
         a_0, el_0, az_0, p0 = self.estimate_initial_point_source(self.residual_vis)
-        x0 = [0.1, el_0, az_0]
+        a_init = max(a_0, 0.01)
+        x0 = [a_init, el_0, az_0]
         logger.info(f"x0 {x0}")
 
         bounds = []
-        src = PointSource(0.1, el_0, az_0)
+        src = PointSource(a_init, el_0, az_0)
         for b in src.get_bounds(d_el, self.el_threshold_r):
             logger.info(f"   Bound: {b}")
             bounds.append(b)
 
-        fmin = minimize(self.f, x0, method="Nelder-mead", bounds=bounds)
+        fmin = minimize(
+            self.f,
+            x0,
+            method="Nelder-Mead",
+            bounds=bounds,
+            options={"xatol": 1e-3, "fatol": 0.1},
+        )
         logger.info(f"fmin {fmin} fun={fmin.fun}")
         a, el, az = fmin.x
         p1 = fmin.fun
