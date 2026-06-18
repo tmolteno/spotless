@@ -5,7 +5,9 @@
 * Migrate from Poetry to uv for package management and builds
 * Fix test imports and deprecated API calls
 * Fix add_source to use incremental subtraction
-* Improve optimization: use peak amplitude as initial guess, add Nelder-Mead tolerances
+* Improve optimization: use peak amplitude as initial guess for optimizer
+* Switch Spotless to L-BFGS-B (fast convergence on well-scaled 3-param problem)
+* Keep MultiSpotless on Nelder-Mead with adaptive option (handles mixed-scale parameter space)
 
 ## 0.6.1
 
