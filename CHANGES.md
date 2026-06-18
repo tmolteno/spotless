@@ -1,5 +1,10 @@
 # Changes
 
+## 0.7.1
+
+* Add LaTeX article and bibtex bibliography in doc/
+* Fix MultiSpotless optimizer (revert to Nelder-Mead adaptive)
+
 ## 0.7.0
 
 * Migrate from Poetry to uv for package management and builds
