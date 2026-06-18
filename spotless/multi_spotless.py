@@ -37,7 +37,8 @@ class MultiSpotless(Spotless):
         model_vect = self.model.to_vector()
         x0 = np.append(model_vect, [a_init, el_0, az_0])
 
-        # Get the bounds of the existing points. Each dimension is constrained appropriately
+        # Get the bounds of the existing points. Each dimension is
+        # constrained appropriately.
         bounds = []
         for src in self.model:
             for b in src.get_bounds(d_el, self.el_threshold_r):
@@ -47,12 +48,20 @@ class MultiSpotless(Spotless):
         for b in src.get_bounds(d_el, self.el_threshold_r):
             bounds.append(b)
 
+        # Use Nelder-Mead for MultiSpotless: the mixed amplitude/angle
+        # parameter space is poorly scaled, making gradient-based
+        # methods (L-BFGS-B) unreliable. Nelder-Mead only uses function
+        # values and handles this naturally.
         fmin = minimize(
             self.f_n,
             x0.flatten(),
-            method="L-BFGS-B",
+            method="Nelder-Mead",
             bounds=bounds,
-            options={"ftol": 1e-6, "gtol": 1e-5, "maxiter": 100},
+            options={
+                "xatol": 1e-3,
+                "fatol": 0.1,
+                "adaptive": True,
+            },
         )
         residual_power = fmin.fun
 
