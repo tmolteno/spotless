@@ -25,12 +25,15 @@ spotless = "spotless.spotless_cli:main"
 gridless = "spotless.gridless_cli:main"
 spotless_calibrate = "spotless.spotless_calibrate_cli:main"
 
-[tool.poetry]
+[dependency-groups]
+dev = [
+    "flake8>=7.1.2",
+    "pytest>=8.0",
+]
 
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^7.1.2"
+[tool.hatch.build.targets.wheel]
+license = {file = "LICENSE.txt"}
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

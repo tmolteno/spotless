@@ -93,24 +93,14 @@ tart_tools is available from standard python package repositories. Try:
 
 ## Development work
     
-If you are developing this package, this should be installed using
+If you are developing this package, install uv and then:
 ```
-	make develop
+	make sync
 ```
-in which case changes to the source-code will be immediately available to projects using it.
+This installs all dependencies (including dev tools like flake8) in a virtual environment.
+To run tests: `make test`
+To lint: `make lint`
 
 ## Changes
 
-* 0.4.6 Clean up logging. Use --debug to switch it on. Remove deprecated calls to verbose in healpy
-* 0.4.3 Use a common field of view parser with DiSkO
-        Add --hdf <filename> option to save the output as an HDF
-* 0.4.2 Read from measurement sets --ms
-* 0.4.1 Use the disko sphere.
-        Clean up unused code.
-        Use harmonics from disko.
-        Specify the --fov and --res as in disko
-* 0.4.0 Move to github repository. Add to pypi. Use disko for utility functions.
-        Add a --version CLI argument
-* 0.3.0 Update to python3
-* 0.3.3 Add a gridless binary to plot a GRIDLESS imaging, add a PDF export option
-* 0.3.4 Fix bitrot in multispotless.
+See [CHANGES.md](CHANGES.md).
