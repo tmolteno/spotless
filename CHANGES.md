@@ -1,12 +1,20 @@
 # Changes
 
+## 0.7.3
+
+* Fix UnboundLocalError in CLI --version output
+* Pre-warm disko harmonic cache (~8x speedup per step)
+* Add performance tuning section to README
+* Update copyright headers to 2022-2026
+* Add comprehensive CLI usage docs to README
+
 ## 0.7.2
 
-* 
+* Add LaTeX article in doc/ directory
+* Switch inline bibliography to bibtex with spotless.bib
 
 ## 0.7.1
 
-* Add LaTeX article and bibtex bibliography in doc/
 * Fix MultiSpotless optimizer (revert to Nelder-Mead adaptive)
 
 ## 0.7.0
