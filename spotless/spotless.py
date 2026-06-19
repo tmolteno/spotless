@@ -92,13 +92,33 @@ class SpotlessBase(object):
         for i in range(25):
             mod, power, p0 = self.step()
             if power >= p0:
+                print(f"  Converged at step {i}: residual power stopped decreasing.")
                 break
+            dp = p0 - power
+            print(
+                f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}  sources={len(mod.objects)}"
+            )
             logger.info("Step {}: Model {}".format(i, mod))
-            logger.info("Residual Power {}, dp {}".format(power, p0 - power))
-        logger.info("Deconvolution Complete")
+            logger.info("Residual Power {}, dp {}".format(power, dp))
+        else:
+            print(f"  Reached max steps ({25}).")
 
         for src in self.model:
             src.power = self.vis_power(self.get_src_vis(src))
+
+        # Summarize the final model
+        n = len(self.model.objects)
+        if n > 0:
+            total = sum(src.power for src in self.model.objects)
+            brightest = self.model.brightest()
+            faintest = self.model.faintest()
+            print(f"\n  Deconvolution complete: {n} sources in model.")
+            print(f"  Total model power: {total:.2f}")
+            print(f"  Brightest: a={brightest.a:.3f}  power={brightest.power:.3f}")
+            print(f"  Faintest:  a={faintest.a:.3f}  power={faintest.power:.3f}")
+        else:
+            print("\n  Deconvolution complete: no sources found.")
+        logger.info("Deconvolution Complete")
 
     def step(self):
         raise NotImplementedError("step is not implemented in the base class")
