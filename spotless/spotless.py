@@ -46,6 +46,11 @@ class SpotlessBase(object):
         self.model = Model()
         self.working_nside = 20
 
+        # Pre-warm the harmonic cache so that subsequent calls to
+        # image_visibilities() with this sphere (or copies) are fast.
+        _temp = self.sphere.copy()
+        self.disko.image_visibilities(self.residual_vis, _temp)
+
     def image_visibilities(self, vis_arr, sphere):
         """Create an image from visibilities
 
