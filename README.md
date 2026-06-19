@@ -147,6 +147,24 @@ spotless --api https://tart.elec.ac.nz/signal --display --show-sources \
 spotless_calibrate --api https://tart.elec.ac.nz/signal
 ```
 
+## Performance
+
+Spotless benefits from multi-threaded BLAS libraries for numpy operations.
+Set the following environment variables to use multiple cores:
+
+```sh
+# Linux / macOS
+export OPENBLAS_NUM_THREADS=4
+export OMP_NUM_THREADS=4
+
+# Or set for a single run
+OPENBLAS_NUM_THREADS=4 spotless --ms data.ms --healpix
+```
+
+For large measurement sets, use `--nvis` to limit the number of
+visibilities used in the peak search (the optimizer uses all
+visibilities for accuracy).
+
 ## Documentation
 
 A LaTeX article describing the algorithm in detail is available in `doc/spotless.tex`.
