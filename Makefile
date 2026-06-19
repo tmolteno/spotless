@@ -18,14 +18,6 @@ clean:
 build:
 	uv build
 
-test_upload: build
-	uv publish --repository testpypi --token $$(op read "op://Personal/testpypi/spotless_token") || \
-	twine upload --repository testpypi dist/*
-
-upload: build
-	uv publish --token $$(op read "op://Personal/pypi/spotless_token") || \
-	twine upload --repository pypi dist/*
-
 TART_ARGS=--ms test_data/test.ms --healpix --fov 160deg --res 120arcmin --debug
 #TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
