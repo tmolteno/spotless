@@ -11,9 +11,15 @@ $(PDF): $(SRC) $(BIB)
 	pdflatex $(SRC)
 
 clean:
-	rm -f *.aux *.log *.out *.bbl *.blg *.pdf *.toc
+	rm -f *.aux *.log *.out *.bbl *.blg *.pdf *.toc *.png
 
 SPOTLESS_ARGS=--ms ../test_data/test.ms --SVG --healpix --fov 170 --res 20arcmin
 images:
 	uv run spotless ${SPOTLESS_ARGS} --title 'spotless' --log spotless_run.txt
 	uv run spotless ${SPOTLESS_ARGS} --multimodel --title 'multimodel' --log multimodel_run.txt
+
+pngs:
+	for svg in *.svg; do \
+		inkscape --export-type=png --export-width=1024 "$$svg" \
+			--export-filename="$${svg%.svg}.png"; \
+	done

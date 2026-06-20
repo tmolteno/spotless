@@ -174,6 +174,10 @@ Build with:
 
     cd doc && make
 
+Generate example images and convert to PNG:
+
+    cd doc && make images && make pngs
+
 ## TODO
 
 * Add Gaussian Source Model
