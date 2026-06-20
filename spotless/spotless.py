@@ -102,20 +102,33 @@ class SpotlessBase(object):
                 logfile.write(msg + "\n")
                 logfile.flush()
 
+        stall_count = 0
+        patience = 3  # extra steps after first non-improving step
+
         for i in range(max_steps):
             mod, power, p0 = self.step()
             if power >= p0:
-                _emit(f"  Converged at step {i}: residual power stopped decreasing.")
-                break
-            dp = p0 - power
-            _emit(
-                f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}"
-                f"  sources={len(mod.objects)}"
-                f"  nfev={self._opt_nfev}  nit={self._opt_nit}"
-                f"  converged={self._opt_success}"
-            )
+                stall_count += 1
+                _emit(
+                    f"  Step {i:2d}: residual_power={power:.3f}  no improvement"
+                    f"  (stall {stall_count}/{patience})"
+                )
+                if stall_count >= patience:
+                    _emit(
+                        f"  Converged: {patience} consecutive steps without improvement."
+                    )
+                    break
+            else:
+                stall_count = 0
+                dp = p0 - power
+                _emit(
+                    f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}"
+                    f"  sources={len(mod.objects)}"
+                    f"  nfev={self._opt_nfev}  nit={self._opt_nit}"
+                    f"  converged={self._opt_success}"
+                )
             logger.info("Step {}: Model {}".format(i, mod))
-            logger.info("Residual Power {}, dp {}".format(power, dp))
+            logger.info("Residual Power {}, dp {}".format(power, p0 - power))
         else:
             _emit(f"  Reached max steps ({max_steps}).")
 
