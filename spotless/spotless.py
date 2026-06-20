@@ -104,10 +104,22 @@ class SpotlessBase(object):
 
         stall_count = 0
         patience = 3  # extra steps after first non-improving step
+        best_power = self.power(self.residual_vis)  # initial residual power
 
         for i in range(max_steps):
             mod, power, p0 = self.step()
-            if power >= p0:
+            if power < best_power:
+                # Improvement relative to the best residual power seen.
+                stall_count = 0
+                dp = best_power - power
+                best_power = power
+                _emit(
+                    f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}"
+                    f"  sources={len(mod.objects)}"
+                    f"  nfev={self._opt_nfev}  nit={self._opt_nit}"
+                    f"  converged={self._opt_success}"
+                )
+            else:
                 stall_count += 1
                 _emit(
                     f"  Step {i:2d}: residual_power={power:.3f}  no improvement"
@@ -115,18 +127,10 @@ class SpotlessBase(object):
                 )
                 if stall_count >= patience:
                     _emit(
-                        f"  Converged: {patience} consecutive steps without improvement."
+                        f"  Converged: {patience} consecutive steps without"
+                        f"  improving on best residual_power={best_power:.3f}."
                     )
                     break
-            else:
-                stall_count = 0
-                dp = p0 - power
-                _emit(
-                    f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}"
-                    f"  sources={len(mod.objects)}"
-                    f"  nfev={self._opt_nfev}  nit={self._opt_nit}"
-                    f"  converged={self._opt_success}"
-                )
             logger.info("Step {}: Model {}".format(i, mod))
             logger.info("Residual Power {}, dp {}".format(power, p0 - power))
         else:
