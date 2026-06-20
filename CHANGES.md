@@ -1,5 +1,11 @@
 # Changes
 
+## 0.7.4
+
+* Add --log FILE option to save deconvolution statistics
+* Show deconvolution progress and final model summary
+* Add optimizer stats (nfev, nit, converged) to step output
+
 ## 0.7.3
 
 * Fix UnboundLocalError in CLI --version output
