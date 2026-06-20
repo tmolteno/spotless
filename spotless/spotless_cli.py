@@ -186,6 +186,13 @@ def main():
     )
 
     parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=50,
+        help="Maximum number of deconvolution steps (default: 50)",
+    )
+
+    parser.add_argument(
         "--show-model",
         action="store_true",
         help="Show the location of the model sources.",
@@ -362,7 +369,7 @@ def main():
     else:
         log_fh = None
 
-    spot.deconvolute(logfile=log_fh)
+    spot.deconvolute(logfile=log_fh, max_steps=ARGS.max_steps)
 
     if log_fh:
         log_fh.close()

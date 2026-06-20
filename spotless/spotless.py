@@ -88,11 +88,12 @@ class SpotlessBase(object):
         self.image_visibilities(np.ones_like(self.residual_vis), sphere)
         self.plot(plt, sphere, src_list=None, show_model=False)
 
-    def deconvolute(self, logfile=None):
+    def deconvolute(self, logfile=None, max_steps=50):
         """Run the deconvolution.
 
         Args:
-            logfile: Optional path to write progress and statistics.
+            logfile: Optional file handle to write progress and statistics.
+            max_steps: Maximum number of deconvolution steps (default 50).
         """
 
         def _emit(msg):
@@ -101,7 +102,7 @@ class SpotlessBase(object):
                 logfile.write(msg + "\n")
                 logfile.flush()
 
-        for i in range(25):
+        for i in range(max_steps):
             mod, power, p0 = self.step()
             if power >= p0:
                 _emit(f"  Converged at step {i}: residual power stopped decreasing.")
@@ -116,7 +117,7 @@ class SpotlessBase(object):
             logger.info("Step {}: Model {}".format(i, mod))
             logger.info("Residual Power {}, dp {}".format(power, dp))
         else:
-            _emit(f"  Reached max steps ({25}).")
+            _emit(f"  Reached max steps ({max_steps}).")
 
         for src in self.model:
             src.power = self.vis_power(self.get_src_vis(src))

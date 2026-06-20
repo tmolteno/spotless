@@ -128,6 +128,8 @@ Spotless can read visibilities from three sources:
   --show-model          Show the model source locations
   --elevation ELEV      Elevation limit for source display (degrees, default: 20)
   --beam                Generate a dirty beam image
+  --max-steps N         Maximum deconvolution steps (default: 50)
+  --log FILE            Save deconvolution statistics to FILE
   --version             Print version and exit
   --debug               Enable debug logging
 ```
