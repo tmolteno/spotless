@@ -63,6 +63,9 @@ class MultiSpotless(Spotless):
                 "adaptive": True,
             },
         )
+        self._opt_nfev = fmin.nfev
+        self._opt_nit = fmin.nit
+        self._opt_success = fmin.success
         residual_power = fmin.fun
 
         self.model = Model.from_vector(fmin.x)

@@ -88,36 +88,52 @@ class SpotlessBase(object):
         self.image_visibilities(np.ones_like(self.residual_vis), sphere)
         self.plot(plt, sphere, src_list=None, show_model=False)
 
-    def deconvolute(self):
+    def deconvolute(self, logfile=None):
+        """Run the deconvolution.
+
+        Args:
+            logfile: Optional path to write progress and statistics.
+        """
+
+        def _emit(msg):
+            print(msg)
+            if logfile is not None:
+                logfile.write(msg + "\n")
+                logfile.flush()
+
         for i in range(25):
             mod, power, p0 = self.step()
             if power >= p0:
-                print(f"  Converged at step {i}: residual power stopped decreasing.")
+                _emit(f"  Converged at step {i}: residual power stopped decreasing.")
                 break
             dp = p0 - power
-            print(
-                f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}  sources={len(mod.objects)}"
+            _emit(
+                f"  Step {i:2d}: residual_power={power:.3f}  removed={dp:.3f}"
+                f"  sources={len(mod.objects)}"
+                f"  nfev={self._opt_nfev}  nit={self._opt_nit}"
+                f"  converged={self._opt_success}"
             )
             logger.info("Step {}: Model {}".format(i, mod))
             logger.info("Residual Power {}, dp {}".format(power, dp))
         else:
-            print(f"  Reached max steps ({25}).")
+            _emit(f"  Reached max steps ({25}).")
 
         for src in self.model:
             src.power = self.vis_power(self.get_src_vis(src))
 
         # Summarize the final model
         n = len(self.model.objects)
+        _emit("")
         if n > 0:
             total = sum(src.power for src in self.model.objects)
             brightest = self.model.brightest()
             faintest = self.model.faintest()
-            print(f"\n  Deconvolution complete: {n} sources in model.")
-            print(f"  Total model power: {total:.2f}")
-            print(f"  Brightest: a={brightest.a:.3f}  power={brightest.power:.3f}")
-            print(f"  Faintest:  a={faintest.a:.3f}  power={faintest.power:.3f}")
+            _emit(f"  Deconvolution complete: {n} sources in model.")
+            _emit(f"  Total model power: {total:.2f}")
+            _emit(f"  Brightest: a={brightest.a:.3f}  power={brightest.power:.3f}")
+            _emit(f"  Faintest:  a={faintest.a:.3f}  power={faintest.power:.3f}")
         else:
-            print("\n  Deconvolution complete: no sources found.")
+            _emit("  Deconvolution complete: no sources found.")
         logger.info("Deconvolution Complete")
 
     def step(self):
@@ -270,6 +286,9 @@ class Spotless(SpotlessBase):
             options={"ftol": 1e-6, "gtol": 1e-5, "maxiter": 100},
         )
         logger.info(f"fmin {fmin} fun={fmin.fun}")
+        self._opt_nfev = fmin.nfev
+        self._opt_nit = fmin.nit
+        self._opt_success = fmin.success
         a, el, az = fmin.x
         p1 = fmin.fun
         src = PointSource(a, el, az)

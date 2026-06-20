@@ -178,6 +178,14 @@ def main():
     )
 
     parser.add_argument(
+        "--log",
+        required=False,
+        default=None,
+        metavar="FILE",
+        help="Save deconvolution progress and statistics to FILE",
+    )
+
+    parser.add_argument(
         "--show-model",
         action="store_true",
         help="Show the location of the model sources.",
@@ -349,7 +357,15 @@ def main():
         spot.beam(plt, nside)
         handle_image(ARGS, None, "beam", time_repr, src_list, sphere)
 
-    spot.deconvolute()
+    if ARGS.log:
+        log_fh = open(ARGS.log, "w")
+    else:
+        log_fh = None
+
+    spot.deconvolute(logfile=log_fh)
+
+    if log_fh:
+        log_fh.close()
 
     if should_make_images:
         residual_sphere = sphere.copy()
