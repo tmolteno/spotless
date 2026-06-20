@@ -1,0 +1,29 @@
+  Step  0: residual_power=19.054  removed=1.503  sources=1  nfev=48  nit=5  converged=True
+  Step  1: residual_power=18.181  removed=0.873  sources=2  nfev=32  nit=3  converged=True
+  Step  2: residual_power=17.273  removed=0.908  sources=3  nfev=48  nit=5  converged=True
+  Step  3: residual_power=16.402  removed=0.871  sources=4  nfev=36  nit=3  converged=True
+  Step  4: residual_power=15.816  removed=0.587  sources=5  nfev=52  nit=5  converged=True
+  Step  5: residual_power=15.278  removed=0.538  sources=6  nfev=52  nit=6  converged=True
+  Step  6: residual_power=14.711  removed=0.567  sources=7  nfev=52  nit=5  converged=True
+  Step  7: residual_power=14.257  removed=0.453  sources=8  nfev=44  nit=4  converged=True
+  Step  8: residual_power=13.808  removed=0.449  sources=9  nfev=52  nit=5  converged=True
+  Step  9: residual_power=13.379  removed=0.429  sources=10  nfev=52  nit=5  converged=True
+  Step 10: residual_power=12.972  removed=0.407  sources=11  nfev=52  nit=5  converged=True
+  Step 11: residual_power=12.588  removed=0.384  sources=12  nfev=32  nit=2  converged=True
+  Step 12: residual_power=12.198  removed=0.390  sources=13  nfev=40  nit=3  converged=True
+  Step 13: residual_power=11.826  removed=0.372  sources=14  nfev=48  nit=5  converged=True
+  Step 14: residual_power=11.457  removed=0.368  sources=15  nfev=44  nit=4  converged=True
+  Step 15: residual_power=11.108  removed=0.349  sources=16  nfev=52  nit=5  converged=True
+  Step 16: residual_power=10.818  removed=0.290  sources=17  nfev=40  nit=3  converged=True
+  Step 17: residual_power=10.551  removed=0.268  sources=18  nfev=40  nit=3  converged=True
+  Step 18: residual_power=10.283  removed=0.268  sources=19  nfev=40  nit=3  converged=True
+  Step 19: residual_power=10.061  removed=0.222  sources=20  nfev=52  nit=6  converged=True
+  Step 20: residual_power=10.061  no improvement  (stall 1/3)
+  Step 21: residual_power=10.061  no improvement  (stall 2/3)
+  Step 22: residual_power=10.061  no improvement  (stall 3/3)
+  Converged: 3 consecutive steps without  improving on best residual_power=10.061.
+
+  Deconvolution complete: 20 sources in model.
+  Total model power: 10.50
+  Brightest: a=0.228  power=1.503
+  Faintest:  a=0.142  power=0.222

@@ -1,0 +1,23 @@
+  Step  0: residual_power=19.054  removed=1.502  sources=1  nfev=112  nit=61  converged=True
+  Step  1: residual_power=18.218  removed=0.835  sources=2  nfev=386  nit=236  converged=True
+  Step  2: residual_power=17.270  removed=0.949  sources=3  nfev=786  nit=510  converged=True
+  Step  3: residual_power=16.399  removed=0.871  sources=4  nfev=1219  nit=831  converged=True
+  Step  4: residual_power=15.801  removed=0.598  sources=5  nfev=1814  nit=1249  converged=True
+  Step  5: residual_power=15.261  removed=0.540  sources=6  nfev=2857  nit=2034  converged=True
+  Step  6: residual_power=14.760  removed=0.501  sources=7  nfev=3356  nit=2409  converged=True
+  Step  7: residual_power=14.232  removed=0.528  sources=8  nfev=6120  nit=4628  converged=True
+  Step  8: residual_power=13.765  removed=0.467  sources=9  nfev=5453  nit=4038  converged=True
+  Step  9: residual_power=13.333  removed=0.433  sources=10  nfev=7672  nit=5781  converged=True
+  Step 10: residual_power=12.897  removed=0.436  sources=11  nfev=10661  nit=8232  converged=True
+  Step 11: residual_power=12.428  removed=0.470  sources=12  nfev=12759  nit=9916  converged=True
+  Step 12: residual_power=12.026  removed=0.402  sources=13  nfev=12286  nit=9520  converged=True
+  Step 13: residual_power=11.703  removed=0.323  sources=14  nfev=15869  nit=12262  converged=True
+  Step 14: residual_power=11.375  removed=0.329  sources=15  nfev=21319  nit=17290  converged=True
+  Step 15: residual_power=10.998  removed=0.377  sources=16  nfev=19586  nit=15583  converged=True
+  Step 16: residual_power=13.109  no improvement  (stall 1/3)
+  Step 17: residual_power=10.990  removed=0.008  sources=18  nfev=5380  nit=4439  converged=True
+  Step 18: residual_power=10.692  removed=0.297  sources=19  nfev=27481  nit=22907  converged=True
+  Step 19: residual_power=12.298  no improvement  (stall 1/3)
+  Step 20: residual_power=10.678  removed=0.014  sources=21  nfev=13371  nit=11784  converged=True
+  Step 21: residual_power=11.803  no improvement  (stall 1/3)
+  Step 22: residual_power=11.709  no improvement  (stall 2/3)

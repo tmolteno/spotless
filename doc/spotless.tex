@@ -252,7 +252,7 @@ power is $E_0 = 20.56$ (arbitrary units).
 
 Sequential Spotless converges after 22~steps (3~stall steps), finding
 20~point sources.  The residual power decreases monotonically from 20.56
-to 10.06, extracting a total model power of 10.50.  Figure~\ref{fig:conv}
+to 10.06, extracting a total model power of 10.50.  Figure~\ref{fig:spotless}
 shows the convergence of residual power and the per-step power removed.
 
 \begin{table}[htbp]
@@ -281,7 +281,7 @@ per source, with the L-BFGS-B optimizer typically converging in 3--6~iterations.
 
 MultiSpotless runs for 20~steps (converging after 3~stall steps) and
 finds 21~sources, but with higher final residual power (10.99 vs.~10.06)
-and lower total model power (7.96 vs.~10.50).  Figure~\ref{fig:conv} also
+and lower total model power (7.96 vs.~10.50).  Figure~\ref{fig:spotless} also
 shows the MultiSpotless convergence, which exhibits occasional non-monotonic
 behaviour (steps~16--18) where the joint optimisation temporarily moves to
 a worse configuration before recovering.
@@ -336,14 +336,48 @@ from the global optimum, particularly as the dimensionality grows.  The
 patience-based convergence criterion (3~consecutive non-improving steps)
 correctly terminates both algorithms when further progress is unlikely.
 
+%=============================================================================
+\section{Images}
+%=============================================================================
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.45\textwidth]{../img/gridless.png}
+\includegraphics[width=0.45\textwidth]{gridless.png}
 \hfill
-\includegraphics[width=0.45\textwidth]{../img/spotless.png}
-\caption{Left: dirty (gridless) image. Right: Spotless reconstruction
-         showing the deconvolved point-source model.}
-\label{fig:conv}
+\includegraphics[width=0.45\textwidth]{spotless.png}
+\caption{Sequential Spotless. Left: dirty (gridless) image.
+         Right: reconstructed point-source model.}
+\label{fig:spotless}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.45\textwidth]{residual.png}
+\hfill
+\includegraphics[width=0.45\textwidth]{spotless_direct.png}
+\caption{Sequential Spotless. Left: residual image after deconvolution.
+         Right: direct reconstruction using thresholded source beams.}
+\label{fig:spotless_detail}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.45\textwidth]{multimodel_gridless.png}
+\hfill
+\includegraphics[width=0.45\textwidth]{multimodel_spotless.png}
+\caption{MultiSpotless. Left: dirty (gridless) image.
+         Right: reconstructed point-source model from joint optimisation.}
+\label{fig:multimodel}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.45\textwidth]{multimodel_residual.png}
+\hfill
+\includegraphics[width=0.45\textwidth]{multimodel_direct.png}
+\caption{MultiSpotless. Left: residual image after deconvolution.
+         Right: direct reconstruction using thresholded source beams.}
+\label{fig:multimodel_detail}
 \end{figure}
 
 %=============================================================================
