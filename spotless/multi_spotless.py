@@ -52,6 +52,12 @@ class MultiSpotless(Spotless):
         # parameter space is poorly scaled, making gradient-based
         # methods (L-BFGS-B) unreliable. Nelder-Mead only uses function
         # values and handles this naturally.
+        #
+        # Set generous maxfev/maxiter since dimensionality grows with
+        # source count.  If the optimizer fails, retry once with a
+        # perturbed starting point.
+        n_params = len(x0.flatten())
+        maxfev = max(n_params * 500, 5000)
         fmin = minimize(
             self.f_n,
             x0.flatten(),
@@ -61,8 +67,37 @@ class MultiSpotless(Spotless):
                 "xatol": 1e-3,
                 "fatol": 0.1,
                 "adaptive": True,
+                "maxfev": maxfev,
+                "maxiter": maxfev,
             },
         )
+
+        # Retry with a perturbed starting point if the optimizer
+        # failed to converge (simplex hit maxfev or collapsed).
+        if not fmin.success:
+            logger.warning(
+                "Nelder-Mead did not converge (nfev=%d), retrying...",
+                fmin.nfev,
+            )
+            x0_retry = x0.flatten() * (1.0 + 0.1 * np.random.randn(len(x0.flatten())))
+            x0_retry = np.clip(
+                x0_retry,
+                [b[0] if b[0] is not None else -np.inf for b in bounds],
+                [b[1] if b[1] is not None else np.inf for b in bounds],
+            )
+            fmin = minimize(
+                self.f_n,
+                x0_retry,
+                method="Nelder-Mead",
+                bounds=bounds,
+                options={
+                    "xatol": 1e-3,
+                    "fatol": 0.1,
+                    "adaptive": True,
+                    "maxfev": maxfev,
+                    "maxiter": maxfev,
+                },
+            )
         self._opt_nfev = fmin.nfev
         self._opt_nit = fmin.nit
         self._opt_success = fmin.success
