@@ -21,15 +21,15 @@
 \maketitle
 
 \begin{abstract}
-Spotless is a point-source deconvolution algorithm for radio interferometry
-that operates directly in visibility space, without gridding. By exploiting
-Parseval's theorem, the total energy in the image can be computed from the
-visibilities without performing a Fourier transform. Spotless builds a model
-of the sky as a sum of point sources by minimising the residual energy. This
-approach handles non-coplanar baselines and all-sky fields of view without
-requiring $w$-projection or other wide-field corrections. Two variants are
-presented: sequential spotless (analogous to CLEAN) and MultiSpotless, which
-jointly optimises all model components.
+	Spotless is a point-source deconvolution algorithm for radio interferometry
+	that operates directly in visibility space, without gridding. By exploiting
+	Parseval's theorem, the total energy in the image can be computed from the
+	visibilities without performing a Fourier transform. Spotless builds a model
+	of the sky as a sum of point sources by minimising the residual energy. This
+	approach handles non-coplanar baselines and all-sky fields of view without
+	requiring $w$-projection or other wide-field corrections. Two variants are
+	presented: sequential spotless (analogous to CLEAN) and MultiSpotless, which
+	jointly optimises all model components.
 \end{abstract}
 
 %=============================================================================
@@ -41,10 +41,10 @@ $V(u, v, w)$, which is related to the sky brightness distribution
 $I(l, m)$ through the van~Cittert--Zernike theorem~\cite{thompson2017}:
 %
 \begin{equation}
-V(u, v, w) = \iint \frac{I(l, m)}{\sqrt{1 - l^2 - m^2}}
-             \, e^{-2\pi j [ul + vm + w(\sqrt{1-l^2-m^2} - 1)]}
-             \, dl \, dm.
-\label{eq:vcz}
+	V(u, v, w) = \iint \frac{I(l, m)}{\sqrt{1 - l^2 - m^2}}
+	\, e^{-2\pi j [ul + vm + w(\sqrt{1-l^2-m^2} - 1)]}
+	\, dl \, dm.
+	\label{eq:vcz}
 \end{equation}
 %
 Here $(l, m, n)$ are direction cosines relative to the phase centre, and
@@ -80,19 +80,23 @@ A point source at direction cosines $(l, m)$ with brightness $A$
 produces a visibility:
 %
 \begin{equation}
-V_P(u, v, w) = A^2 \, e^{-2\pi j [ul + vm + w(n-1)]},
-\label{eq:ptvis}
+	V_P(u, v, w) = A^2 \, e^{-j\omega (ul + vm + w(n-1))},
+	\label{eq:ptvis}
 \end{equation}
 %
-where $n = \sqrt{1 - l^2 - m^2}$. In the Spotless implementation,
-the source position is parameterised in elevation--azimuth coordinates
+where $n = \sqrt{1 - l^2 - m^2}$ and $\omega = 2\pi/\lambda$ is the
+angular wavenumber at the observing wavelength $\lambda$. The $A^2$
+factor arises because the code stores the field-amplitude parameter
+$A$ and computes the visibility power as $A^2$. In the Spotless
+implementation, the source position is parameterised in
+elevation--azimuth coordinates
 $(\theta, \phi)$ rather than $(l, m)$, with the conversion:
 %
 \begin{align}
-l &= \sin\phi \cos\theta, \\
-m &= \cos\phi \cos\theta, \\
-n &= \sin\theta.
-\label{eq:lmn}
+	l & = \sin\phi \cos\theta, \\
+	m & = \cos\phi \cos\theta, \\
+	n & = \sin\theta.
+	\label{eq:lmn}
 \end{align}
 
 %-----------------------------------------------------------------------------
@@ -103,7 +107,7 @@ For discrete visibilities $v_k$ measured at $M$ baseline points,
 Parseval's theorem for the Discrete Fourier Transform states:
 %
 \begin{equation}
-\sum_{n=0}^{N-1} |x_n|^2 = \frac{1}{N} \sum_{k=0}^{N-1} |X_k|^2,
+	\sum_{n=0}^{N-1} |x_n|^2 = \frac{1}{N} \sum_{k=0}^{N-1} |X_k|^2,
 \end{equation}
 %
 where $x_n$ is the image and $X_k$ is its Fourier transform. Since the
@@ -112,8 +116,8 @@ the total energy $E(V)$ in the image is proportional to the sum of
 squared visibility amplitudes:
 %
 \begin{equation}
-E(V) \propto \sum_{k=0}^{M-1} v_k v_k^*.
-\label{eq:energy}
+	E(V) \propto \sum_{k=0}^{M-1} v_k v_k^*.
+	\label{eq:energy}
 \end{equation}
 %
 No gridding or inverse Fourier transform is required to compute this
@@ -129,10 +133,10 @@ Beginning with the measured visibilities $V^{(0)} = V$, each step
 $i = 0, 1, \dots$ solves:
 %
 \begin{equation}
-(A_i, \theta_i, \phi_i) =
-\underset{A,\theta,\phi}{\arg\min}\;
-E\bigl(V^{(i)} - A^2 V_P(\theta, \phi)\bigr),
-\label{eq:step}
+	(A_i, \theta_i, \phi_i) =
+	\underset{A,\theta,\phi}{\arg\min}\;
+	E\bigl(V^{(i)} - A^2 V_P(\theta, \phi)\bigr),
+	\label{eq:step}
 \end{equation}
 %
 where $V_P(\theta, \phi)$ is the unit-amplitude point-source visibility
@@ -140,12 +144,14 @@ from equation~\eqref{eq:ptvis}. The source is added to the model and
 subtracted from the residual:
 %
 \begin{align}
-\mathcal{M} &\leftarrow \mathcal{M} \cup \{(A_i, \theta_i, \phi_i)\}, \\
-V^{(i+1)} &= V^{(i)} - A_i^2 V_P(\theta_i, \phi_i).
+	\mathcal{M} & \leftarrow \mathcal{M} \cup \{(A_i, \theta_i, \phi_i)\}, \\
+	V^{(i+1)}   & = V^{(i)} - A_i^2 V_P(\theta_i, \phi_i).
 \end{align}
 %
-The algorithm terminates when the residual energy stops decreasing,
-i.e., when $E(V^{(i+1)}) \geq E(V^{(i)})$.
+The algorithm tracks the lowest residual power $E_{\text{best}}$
+achieved so far and terminates when $P = 3$ consecutive steps fail
+to improve on it. This patience-based criterion avoids premature
+convergence when the optimiser temporarily stalls.
 
 The cost function in equation~\eqref{eq:step} is a smooth function of
 three parameters $(A, \theta, \phi)$. The optimisation is performed using
@@ -153,7 +159,8 @@ the L-BFGS-B algorithm~\cite{byrd1995}, a quasi-Newton method that
 supports bound constraints and uses a limited-memory Hessian
 approximation. An initial guess is obtained by imaging the current
 residual onto a HEALPix sphere~\cite{gorski2005} and locating the
-brightest pixel.
+brightest pixel; the initial amplitude is set to $\max(A_0, 0.01)$
+where $A_0$ is the peak pixel value.
 
 %-----------------------------------------------------------------------------
 \subsection{MultiSpotless}
@@ -164,10 +171,10 @@ all model components at each step. After $i$ sources have been found,
 the $(i+1)$-th step solves the full $3(i+1)$-dimensional problem:
 %
 \begin{equation}
-\underset{\{A_k,\theta_k,\phi_k\}_{k=0}^{i}}
-{\arg\min}\;
-E\bigl(V - \sum_{k=0}^{i} A_k^2 V_P(\theta_k, \phi_k)\bigr).
-\label{eq:multistep}
+	\underset{\{A_k,\theta_k,\phi_k\}_{k=0}^{i}}
+	{\arg\min}\;
+	E\bigl(V - \sum_{k=0}^{i} A_k^2 V_P(\theta_k, \phi_k)\bigr).
+	\label{eq:multistep}
 \end{equation}
 %
 This allows existing sources to be refined as new ones are added,
@@ -176,37 +183,46 @@ computational complexity. Because the full parameter space mixes
 amplitudes and angles at very different scales, MultiSpotless employs
 the Nelder--Mead simplex algorithm~\cite{nelder1965} with adaptive
 parameters, which is derivative-free and robust to poor scaling.
+The function evaluation budget is set to $500 \times N_{\text{params}}$
+(per step). If the optimiser fails to converge within this budget
+(a common occurrence in high dimensions), it retries once from a
+perturbed starting point.
 
 %=============================================================================
 \section{Algorithm}
 %=============================================================================
 
 \begin{algorithm}[htbp]
-\caption{Sequential Spotless}
-\label{alg:spotless}
-\begin{algorithmic}[1]
-\State \textbf{Input:} Visibilities $V$, field-of-view sphere $\mathcal{S}$
-\State $\mathcal{M} \leftarrow \emptyset$
-\State $V_{\text{res}} \leftarrow V$
-\State $E_0 \leftarrow \infty$
-\Repeat
-    \State Image $V_{\text{res}}$ onto $\mathcal{S}$
-    \State $(A_0, \theta_0, \phi_0) \leftarrow \text{peak of image}$
-    \State $x_0 \leftarrow [A_0, \theta_0, \phi_0]$
-    \State $x^* \leftarrow \arg\min_x E(V_{\text{res}} - V_P(x))$
-    \State $(A, \theta, \phi) \leftarrow x^*$
-    \State $E_1 \leftarrow E(V_{\text{res}} - A^2 V_P(\theta, \phi))$
-    \If{$E_1 \geq E_0$} \textbf{break} \EndIf
-    \State $\mathcal{M} \leftarrow \mathcal{M} \cup \{(A, \theta, \phi)\}$
-    \State $V_{\text{res}} \leftarrow V_{\text{res}} - A^2 V_P(\theta, \phi)$
-    \State $E_0 \leftarrow E_1$
-\Until{max iterations}
-\State \textbf{return} $\mathcal{M}$, $V_{\text{res}}$
-\end{algorithmic}
+	\caption{Spotless Deconvolution}
+	\label{alg:spotless}
+	\begin{algorithmic}[1]
+		\State \textbf{Input:} Visibilities $V$, sphere $\mathcal{S}$, patience $P=3$
+		\State $\mathcal{M} \leftarrow \emptyset$
+		\State $V_{\text{res}} \leftarrow V$
+		\State $E_{\text{best}} \leftarrow E(V)$ \Comment{initial residual power}
+		\State $\text{stall} \leftarrow 0$
+		\Repeat
+		\State Image $V_{\text{res}}$ onto $\mathcal{S}$
+		\State $(A_0, \theta_0, \phi_0) \leftarrow \text{peak of image}$
+		\State $x_0 \leftarrow [\max(A_0, 0.01), \theta_0, \phi_0]$
+		\State $x^* \leftarrow \arg\min_x E(V_{\text{res}} - A^2 V_P(x))$
+		\State $(A, \theta, \phi) \leftarrow x^*$
+		\State $E_{\text{new}} \leftarrow E(V_{\text{res}} - A^2 V_P(\theta, \phi))$
+		\If{$E_{\text{new}} < E_{\text{best}}$}
+		\State $\text{stall} \leftarrow 0$; \quad $E_{\text{best}} \leftarrow E_{\text{new}}$
+		\State $\mathcal{M} \leftarrow \mathcal{M} \cup \{(A, \theta, \phi)\}$
+		\State $V_{\text{res}} \leftarrow V_{\text{res}} - A^2 V_P(\theta, \phi)$
+		\Else
+		\State $\text{stall} \leftarrow \text{stall} + 1$
+		\If{$\text{stall} \geq P$} \textbf{break} \EndIf
+		\EndIf
+		\Until{max iterations}
+		\State \textbf{return} $\mathcal{M}$, $V_{\text{res}}$
+	\end{algorithmic}
 \end{algorithm}
 
 The MultiSpotless variant replaces the single-source optimisation
-(line~8) with a joint optimisation over all model parameters as in
+(step~10) with a joint optimisation over all model parameters as in
 equation~\eqref{eq:multistep}.
 
 %=============================================================================
@@ -217,20 +233,20 @@ Spotless is implemented in Python and distributed as the
 \texttt{spotless} package. Key design features include:
 
 \begin{itemize}[leftmargin=*,nosep]
-    \item \textbf{Grid-free operation.} All computations are performed
-          directly on the visibility data; no gridding or degridding steps
-          are required.
-    \item \textbf{All-sky support.} The field of view is represented as a
-          HEALPix sphere, enabling natural handling of wide-field and
-          all-sky observations.
-    \item \textbf{Non-coplanar baselines.} The full $(u, v, w)$ baseline
-          coordinates are used in the point-source visibility calculation
-          (equation~\ref{eq:ptvis}), avoiding the need for $w$-projection.
-    \item \textbf{Plug-and-play data sources.} Spotless accepts
-          visibilities from a TART telescope API, from JSON snapshot
-          files, or from CASA measurement sets (via \texttt{disko}).
-    \item \textbf{Multiple output formats.} Reconstructed images can be
-          exported as FITS, PNG, SVG, PDF, or HDF5.
+	\item \textbf{Grid-free operation.} All computations are performed
+	      directly on the visibility data; no gridding or degridding steps
+	      are required.
+	\item \textbf{All-sky support.} The field of view is represented as a
+	      HEALPix sphere, enabling natural handling of wide-field and
+	      all-sky observations.
+	\item \textbf{Non-coplanar baselines.} The full $(u, v, w)$ baseline
+	      coordinates are used in the point-source visibility calculation
+	      (equation~\ref{eq:ptvis}), avoiding the need for $w$-projection.
+	\item \textbf{Plug-and-play data sources.} Spotless accepts
+	      visibilities from a TART telescope API, from JSON snapshot
+	      files, or from CASA measurement sets (via \texttt{disko}).
+	\item \textbf{Multiple output formats.} Reconstructed images can be
+	      exported as FITS, PNG, SVG, PDF, or HDF5.
 \end{itemize}
 
 The initial peak search and image reconstruction use the HEALPix
@@ -256,20 +272,20 @@ to 10.06, extracting a total model power of 10.50.  Figure~\ref{fig:spotless}
 shows the convergence of residual power and the per-step power removed.
 
 \begin{table}[htbp]
-\centering
-\caption{Spotless deconvolution summary.}
-\label{tab:spotless}
-\begin{tabular}{rrrrr}
-\toprule
-Step & Residual & Removed & Sources & nfev \\
-\midrule
- 0 & 19.05 & 1.50 &  1 &  48 \\
- 5 & 15.28 & 0.54 &  6 &  52 \\
-10 & 12.97 & 0.41 & 11 &  52 \\
-15 & 11.11 & 0.35 & 16 &  52 \\
-19 & 10.06 & 0.22 & 20 &  52 \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{Spotless deconvolution summary.}
+	\label{tab:spotless}
+	\begin{tabular}{rrrrr}
+		\toprule
+		Step & Residual & Removed & Sources & nfev \\
+		\midrule
+		0    & 19.05    & 1.50    & 1       & 48   \\
+		5    & 15.28    & 0.54    & 6       & 52   \\
+		10   & 12.97    & 0.41    & 11      & 52   \\
+		15   & 11.11    & 0.35    & 16      & 52   \\
+		19   & 10.06    & 0.22    & 20      & 52   \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 The per-step computational cost is stable at $\sim$50~function evaluations
@@ -287,20 +303,20 @@ behaviour (steps~16--18) where the joint optimisation temporarily moves to
 a worse configuration before recovering.
 
 \begin{table}[htbp]
-\centering
-\caption{MultiSpotless deconvolution summary.}
-\label{tab:multimodel}
-\begin{tabular}{rrrrr}
-\toprule
-Step & Residual & Removed & Sources & nfev \\
-\midrule
- 0 & 19.05 & 1.50 &  1 &    112 \\
- 5 & 15.26 & 0.54 &  6 &   2857 \\
-10 & 12.90 & 0.44 & 11 &  10661 \\
-15 & 11.00 & 0.38 & 16 &  19586 \\
-17 & 10.99 & 0.01 & 18 &  10060 \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{MultiSpotless deconvolution summary.}
+	\label{tab:multimodel}
+	\begin{tabular}{rrrrr}
+		\toprule
+		Step & Residual & Removed & Sources & nfev  \\
+		\midrule
+		0    & 19.05    & 1.50    & 1       & 112   \\
+		5    & 15.26    & 0.54    & 6       & 2857  \\
+		10   & 12.90    & 0.44    & 11      & 10661 \\
+		15   & 11.00    & 0.38    & 16      & 19586 \\
+		17   & 10.99    & 0.01    & 18      & 10060 \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 The computational cost grows significantly with source count: from
@@ -313,20 +329,20 @@ $\mathcal{O}(N^2)$ work per step.
 %-----------------------------------------------------------------------------
 
 \begin{table}[htbp]
-\centering
-\caption{Comparison of Spotless and MultiSpotless on the same dataset.}
-\label{tab:comparison}
-\begin{tabular}{lrr}
-\toprule
-Metric & Spotless & MultiSpotless \\
-\midrule
-Sources found          & 20  & 21 \\
-Final residual power   & 10.06 & 10.99 \\
-Total model power      & 10.50 & 7.96 \\
-Total function evals   & $\sim$1{,}100 & $\sim$140{,}000 \\
-Convergence behaviour  & Monotonic & Non-monotonic \\
-\bottomrule
-\end{tabular}
+	\centering
+	\caption{Comparison of Spotless and MultiSpotless on the same dataset.}
+	\label{tab:comparison}
+	\begin{tabular}{lrr}
+		\toprule
+		Metric                & Spotless      & MultiSpotless   \\
+		\midrule
+		Sources found         & 20            & 21              \\
+		Final residual power  & 10.06         & 10.99           \\
+		Total model power     & 10.50         & 7.96            \\
+		Total function evals  & $\sim$1{,}100 & $\sim$140{,}000 \\
+		Convergence behaviour & Monotonic     & Non-monotonic   \\
+		\bottomrule
+	\end{tabular}
 \end{table}
 
 On this dataset, sequential Spotless outperforms MultiSpotless: it achieves
@@ -341,43 +357,43 @@ correctly terminates both algorithms when further progress is unlikely.
 %=============================================================================
 
 \begin{figure}[htbp]
-\centering
-\includegraphics[width=0.45\textwidth]{gridless.png}
-\hfill
-\includegraphics[width=0.45\textwidth]{spotless.png}
-\caption{Sequential Spotless. Left: dirty (gridless) image.
-         Right: reconstructed point-source model.}
-\label{fig:spotless}
+	\centering
+	\includegraphics[width=0.45\textwidth]{gridless.png}
+	\hfill
+	\includegraphics[width=0.45\textwidth]{spotless.png}
+	\caption{Sequential Spotless. Left: dirty (gridless) image.
+		Right: reconstructed point-source model.}
+	\label{fig:spotless}
 \end{figure}
 
 \begin{figure}[htbp]
-\centering
-\includegraphics[width=0.45\textwidth]{residual.png}
-\hfill
-\includegraphics[width=0.45\textwidth]{spotless_direct.png}
-\caption{Sequential Spotless. Left: residual image after deconvolution.
-         Right: direct reconstruction using thresholded source beams.}
-\label{fig:spotless_detail}
+	\centering
+	\includegraphics[width=0.45\textwidth]{residual.png}
+	\hfill
+	\includegraphics[width=0.45\textwidth]{spotless_direct.png}
+	\caption{Sequential Spotless. Left: residual image after deconvolution.
+		Right: direct reconstruction using thresholded source beams.}
+	\label{fig:spotless_detail}
 \end{figure}
 
 \begin{figure}[htbp]
-\centering
-\includegraphics[width=0.45\textwidth]{multimodel_gridless.png}
-\hfill
-\includegraphics[width=0.45\textwidth]{multimodel_spotless.png}
-\caption{MultiSpotless. Left: dirty (gridless) image.
-         Right: reconstructed point-source model from joint optimisation.}
-\label{fig:multimodel}
+	\centering
+	\includegraphics[width=0.45\textwidth]{multimodel_gridless.png}
+	\hfill
+	\includegraphics[width=0.45\textwidth]{multimodel_spotless.png}
+	\caption{MultiSpotless. Left: dirty (gridless) image.
+		Right: reconstructed point-source model from joint optimisation.}
+	\label{fig:multimodel}
 \end{figure}
 
 \begin{figure}[htbp]
-\centering
-\includegraphics[width=0.45\textwidth]{multimodel_residual.png}
-\hfill
-\includegraphics[width=0.45\textwidth]{multimodel_direct.png}
-\caption{MultiSpotless. Left: residual image after deconvolution.
-         Right: direct reconstruction using thresholded source beams.}
-\label{fig:multimodel_detail}
+	\centering
+	\includegraphics[width=0.45\textwidth]{multimodel_residual.png}
+	\hfill
+	\includegraphics[width=0.45\textwidth]{multimodel_direct.png}
+	\caption{MultiSpotless. Left: residual image after deconvolution.
+		Right: direct reconstruction using thresholded source beams.}
+	\label{fig:multimodel_detail}
 \end{figure}
 
 %=============================================================================
@@ -389,35 +405,35 @@ correctly terminates both algorithms when further progress is unlikely.
 Spotless offers several advantages over traditional CLEAN-based methods:
 %
 \begin{enumerate}[leftmargin=*,nosep]
-    \item No gridding artefacts---the model is fit directly to the
-          visibility data.
-    \item No requirement for a regular $(u,v)$ sampling.
-    \item Natural handling of non-coplanar baselines via the full
-          $(u, v, w)$ phase term.
-    \item All-sky fields of view are handled without special treatment.
-    \item The model is a compact parametric representation (list of point
-          sources) rather than a pixel map.
+	\item No gridding artefacts---the model is fit directly to the
+	      visibility data.
+	\item No requirement for a regular $(u,v)$ sampling.
+	\item Natural handling of non-coplanar baselines via the full
+	      $(u, v, w)$ phase term.
+	\item All-sky fields of view are handled without special treatment.
+	\item The model is a compact parametric representation (list of point
+	      sources) rather than a pixel map.
 \end{enumerate}
 
 \subsection{Limitations and Future Work}
 
 \begin{itemize}[leftmargin=*,nosep]
-    \item \textbf{Point-source assumption.} Spotless models the sky as a
-          collection of point sources. Extended emission is not well
-          represented. Future work could incorporate Gaussian or
-          shapelet source models.
-    \item \textbf{Antenna beam.} The current implementation assumes an
-          isotropic hemispherical antenna response. Incorporating a
-          direction-dependent beam model would improve accuracy,
-          particularly at low elevations.
-    \item \textbf{Uncertainty quantification.} Running a Markov Chain
-          Monte Carlo (MCMC) sampler on the MultiSpotless model would
-          provide uncertainty estimates for source parameters and a
-          natural stopping criterion based on posterior precision.
-    \item \textbf{Computational cost.} MultiSpotless scales as
-          $\mathcal{O}(N^2)$ in the number of sources due to the joint
-          optimisation. Block-coordinate descent or alternating
-          optimisation could reduce this cost.
+	\item \textbf{Point-source assumption.} Spotless models the sky as a
+	      collection of point sources. Extended emission is not well
+	      represented. Future work could incorporate Gaussian or
+	      shapelet source models.
+	\item \textbf{Antenna beam.} The current implementation assumes an
+	      isotropic hemispherical antenna response. Incorporating a
+	      direction-dependent beam model would improve accuracy,
+	      particularly at low elevations.
+	\item \textbf{Uncertainty quantification.} Running a Markov Chain
+	      Monte Carlo (MCMC) sampler on the MultiSpotless model would
+	      provide uncertainty estimates for source parameters and a
+	      natural stopping criterion based on posterior precision.
+	\item \textbf{Computational cost.} MultiSpotless scales as
+	      $\mathcal{O}(N^2)$ in the number of sources due to the joint
+	      optimisation. Block-coordinate descent or alternating
+	      optimisation could reduce this cost.
 \end{itemize}
 
 %=============================================================================
