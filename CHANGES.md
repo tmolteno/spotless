@@ -2,6 +2,7 @@
 
 ## 0.7.4
 
+* Upgrade disko dependency to >=1.4.0 (many fixes)
 * Add --save-model-json FILE option to export point-source model
 * Add --log FILE option to save deconvolution statistics
 * Show deconvolution progress and final model summary
