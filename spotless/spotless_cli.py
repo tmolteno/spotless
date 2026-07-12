@@ -193,6 +193,14 @@ def main():
     )
 
     parser.add_argument(
+        "--save-model-json",
+        required=False,
+        default=None,
+        metavar="FILE",
+        help="Save the point-source model as JSON",
+    )
+
+    parser.add_argument(
         "--show-model",
         action="store_true",
         help="Show the location of the model sources.",
@@ -406,3 +414,9 @@ def main():
 
     with open(fpath, "w") as outfile:
         json.dump(model_dict, outfile, sort_keys=True, indent=4, ensure_ascii=True)
+
+    if ARGS.save_model_json:
+        save_path = os.path.join(ARGS.dir, ARGS.save_model_json)
+        with open(save_path, "w") as outfile:
+            json.dump(model_dict, outfile, sort_keys=True, indent=4, ensure_ascii=True)
+        print(f"Model saved to {save_path}")

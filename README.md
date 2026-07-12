@@ -110,6 +110,7 @@ Spotless can read visibilities from three sources:
   --PDF                 Save as PDF
   --fits                Save as FITS
   --HDF FILENAME        Save field of view as HDF5
+  --save-model-json FILE  Save point-source model as JSON
   --dir DIR             Output directory (default: .)
   --title TITLE         Prefix for output filenames
 ```
