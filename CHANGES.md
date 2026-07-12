@@ -2,6 +2,7 @@
 
 ## 0.7.4
 
+* Add --save-model-json FILE option to export point-source model
 * Add --log FILE option to save deconvolution statistics
 * Show deconvolution progress and final model summary
 * Add optimizer stats (nfev, nit, converged) to step output

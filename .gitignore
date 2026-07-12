@@ -101,6 +101,16 @@ uv.lock
 *.blg
 *.toc
 
+# Generated image symlinks (doc/)
+doc/gridless.png
+doc/residual.png
+doc/spotless.png
+doc/spotless_direct.png
+doc/multimodel_gridless.png
+doc/multimodel_residual.png
+doc/multimodel_spotless.png
+doc/multimodel_direct.png
+
 # pipenv
 #   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
