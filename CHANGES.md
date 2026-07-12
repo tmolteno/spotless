@@ -1,9 +1,15 @@
 # Changes
 
+## 0.7.5
+
+* Upgrade disko dependency to >=1.4.0 (many fixes since 1.1.1)
+* Add --save-model-json FILE option to export point-source model
+* Add LaTeX article, bibtex bibliography, and result images in doc/
+* Fix MultiSpotless convergence: maxfev budget, retry on failure
+* LaTeX documentation updated to match actual implementation
+
 ## 0.7.4
 
-* Upgrade disko dependency to >=1.4.0 (many fixes)
-* Add --save-model-json FILE option to export point-source model
 * Add --log FILE option to save deconvolution statistics
 * Show deconvolution progress and final model summary
 * Add optimizer stats (nfev, nit, converged) to step output
