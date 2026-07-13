@@ -152,6 +152,8 @@ spotless_calibrate --api https://tart.elec.ac.nz/signal
 
 ## Performance
 
+### Compute
+
 Spotless benefits from multi-threaded BLAS libraries for numpy operations.
 Set the following environment variables to use multiple cores:
 
@@ -167,6 +169,27 @@ OPENBLAS_NUM_THREADS=4 spotless --ms data.ms --healpix
 For large measurement sets, use `--nvis` to limit the number of
 visibilities used in the peak search (the optimizer uses all
 visibilities for accuracy).
+
+### Memory
+
+Memory usage is dominated by the spherical harmonic cache, which scales as
+`n_vis × n_pix × 16` bytes (complex128).  The table below shows approximate
+memory consumption for a 170° field of view at various resolutions and
+visibility counts.
+
+| Resolution | n_pix | 1,000 vis | 10,000 vis | 100,000 vis |
+|-----------|-------|-----------|------------|-------------|
+| 240 arcmin | 3,048 | 99 MB | 538 MB | 4.9 GB |
+| 120 arcmin | 12,204 | 245 MB | 2.0 GB | 19.6 GB |
+| 60 arcmin | 48,788 | 831 MB | 7.9 GB | 78.1 GB |
+| 20 arcmin | 780,492 | 12.5 GB | 124.9 GB | 1.2 TB |
+
+Guidelines:
+
+- Use the coarsest resolution acceptable for your science (`--res`).
+- Limit visibilities with `--nvis` for initial exploration.
+- Memory is *O(n_vis × n_pix)* due to the harmonic basis cache; a second
+  call with the same sphere reuses the cache at no extra cost.
 
 ## Documentation
 
