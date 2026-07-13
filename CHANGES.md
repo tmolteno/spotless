@@ -6,6 +6,7 @@
 * Add --save-model-json FILE option to export point-source model
 * Add LaTeX article, bibtex bibliography, and result images in doc/
 * Fix MultiSpotless convergence: maxfev budget, retry on failure
+* Document memory scaling: O(n_vis × n_pix) harmonic cache with table
 * LaTeX documentation updated to match actual implementation
 
 ## 0.7.4
