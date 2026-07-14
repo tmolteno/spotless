@@ -26,6 +26,7 @@ from tart.operation import settings
 from tart_tools import api_handler, api_imaging
 
 from .multi_spotless import MultiSpotless
+from .sphere import sphere_copy
 from .spotless import Spotless, get_source_list
 
 logger = logging.getLogger()
@@ -383,7 +384,7 @@ def main():
         log_fh.close()
 
     if should_make_images:
-        residual_sphere = sphere.copy()
+        residual_sphere = sphere_copy(sphere)
         spot.image_visibilities(spot.residual_vis, residual_sphere)
         spot.display(plt, src_list, sphere, ARGS.show_model)
         handle_image(ARGS, None, "residual", time_repr, src_list, residual_sphere)

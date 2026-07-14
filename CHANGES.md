@@ -1,8 +1,17 @@
 # Changes
 
+## 0.8.0
+
+* Upgrade disko to >=1.4.4: blocked operator caps harmonic cache at 500 MB
+* Share immutable geometry arrays across sphere copies (88% less memory per copy)
+* Reuse scratch sphere in reconstruct_direct instead of per-source allocation
+* Update README memory section to reflect bounded cache
+
 ## 0.7.5
 
-* Upgrade disko dependency to >=1.4.0 (many fixes since 1.1.1)
+* Upgrade disko dependency to >=1.4.4 (blocked operator caps harmonic cache at 500 MB)
+* Use shared-geometry sphere copies (88% less memory per copy)
+* Reuse scratch sphere in reconstruct_direct (no per-source allocation)
 * Add --save-model-json FILE option to export point-source model
 * Add LaTeX article, bibtex bibliography, and result images in doc/
 * Fix MultiSpotless convergence: maxfev budget, retry on failure

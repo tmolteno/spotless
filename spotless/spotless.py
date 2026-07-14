@@ -24,7 +24,7 @@ from tart.imaging import elaz
 
 from .model import Model
 from .source import PointSource
-from .sphere import get_peak
+from .sphere import get_peak, sphere_copy
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class SpotlessBase(object):
 
         # Pre-warm the harmonic cache so that subsequent calls to
         # image_visibilities() with this sphere (or copies) are fast.
-        _temp = self.sphere.copy()
+        _temp = sphere_copy(self.sphere)
         self.disko.image_visibilities(self.residual_vis, _temp)
 
     def image_visibilities(self, vis_arr, sphere):
@@ -176,7 +176,7 @@ class SpotlessBase(object):
         sphere.pixels *= scaling
 
     def pixel_power(self, vis):
-        sphere = self.sphere.copy()
+        sphere = sphere_copy(self.sphere)
         self.disko.image_visibilities(vis, sphere)
         return sphere.get_power()
 
@@ -204,7 +204,7 @@ class SpotlessBase(object):
         """Estimate an initial point source for the model. This is effectively a brute
         force search over the surface of the sphere
         """
-        sphere = self.sphere.copy()
+        sphere = sphere_copy(self.sphere)
         self.image_visibilities(vis, sphere)
         a_0, el_0, az_0 = get_peak(sphere)
         p0 = self.power(vis)
@@ -231,29 +231,29 @@ class SpotlessBase(object):
         logger.info("Brightest Source {}".format(brightest_source))
         logger.info("Weakest Source {}".format(weakest_source))
 
-        sphere = self.sphere.copy()
-
+        sphere = sphere_copy(self.sphere)
         total_source_power = 0.0
+
+        scratch = sphere_copy(self.sphere)
 
         for src in self.model:
             src_vis = self.get_src_vis(src)
 
-            # TODO image onto a new sphere...
-            src_map = sphere.copy()
+            self.disko.image_visibilities(src_vis, scratch)
 
-            self.disko.image_visibilities(src_vis, src_map)
-
-            # Threshold the src_map to be the central peak
-            smap = np.abs(src_map.pixels)
+            # Threshold the scratch to be the central peak
+            smap = np.abs(scratch.pixels)
             cutoff = np.max(smap) / 2
             low_value_flags = smap < cutoff
             smap[low_value_flags] = 0
 
-            src_map.pixels = smap
-            SpotlessBase.scale_to_power(src_map, src.get_power())
-            sphere.pixels += src_map.pixels
+            scratch.pixels = smap
+            SpotlessBase.scale_to_power(scratch, src.get_power())
+            sphere.pixels += scratch.pixels
 
             total_source_power += src.get_power()
+
+        del scratch
 
         logger.info("Total Source power {}".format(total_source_power))
 
@@ -264,10 +264,10 @@ class SpotlessBase(object):
         logger.info("model_pixel_map_power {}".format(model_map_power))
 
         # Add the residual
-        residual = sphere.copy()
+        residual = sphere_copy(self.sphere)
         self.image_visibilities(self.residual_vis, residual)
 
-        combined = sphere.copy()
+        combined = sphere_copy(self.sphere)
         combined.set_visible_pixels(sphere.pixels + residual.pixels, scale=True)
 
         return sphere, model_map_power, residual.get_power()
@@ -333,7 +333,7 @@ class Spotless(SpotlessBase):
 
     def reconstruct(self):
         logger.info("Reconstructing Image")
-        sphere = self.sphere.copy()
+        sphere = sphere_copy(self.sphere)
 
         beam_width = self.disko.get_beam_width().radians()
         logger.info(f"Resolution : {beam_width}")
@@ -372,13 +372,13 @@ class Spotless(SpotlessBase):
         logger.info(f"   total_source_power: {total_source_power}")
 
         # Add the residual
-        residual = self.sphere.copy()
+        residual = sphere_copy(self.sphere)
         self.image_visibilities(self.residual_vis, residual)
         residual_power = self.power(self.residual_vis)
         SpotlessBase.scale_to_power(residual, residual_power)
         logger.info(f"       residual_power: {residual_power}")
 
-        combined = self.sphere.copy()
+        combined = sphere_copy(self.sphere)
         combined.pixels = sphere.pixels + residual.pixels
         return combined, model_map_power, residual_power
 
@@ -392,7 +392,7 @@ class Spotless(SpotlessBase):
         logger.info("Brightest Source {}".format(brightest_source))
         logger.info("Weakest Source {}".format(weakest_source))
 
-        sphere = self.sphere.copy()
+        sphere = sphere_copy(self.sphere)
         total_source_power = 0.0
         sphere.pixels *= 0
         for src in self.model:
@@ -419,7 +419,7 @@ class Spotless(SpotlessBase):
         )
 
         # Add the residual
-        residual = sphere.copy()
+        residual = sphere_copy(sphere)
         self.image_visibilities(self.residual_vis, residual)
         sphere.pixels += residual.pixels
 
