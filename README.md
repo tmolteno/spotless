@@ -108,7 +108,8 @@ Spotless can read visibilities from three sources:
   --PNG                 Save as PNG
   --SVG                 Save as SVG
   --PDF                 Save as PDF
-  --fits                Save as FITS
+  --fits                Save as FITS (not implemented yet: exits with an
+                        error until tmolteno/disko#10 lands, see issue #1)
   --HDF FILENAME        Save field of view as HDF5
   --save-model-json FILE  Save point-source model as JSON
   --dir DIR             Output directory (default: .)

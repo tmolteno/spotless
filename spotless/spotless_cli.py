@@ -25,6 +25,7 @@ from tart.imaging import elaz
 from tart.operation import settings
 from tart_tools import api_handler, api_imaging
 
+from .fits_export import abort_fits_not_implemented
 from .multi_spotless import MultiSpotless
 from .sphere import sphere_copy
 from .spotless import Spotless, get_source_list
@@ -34,6 +35,11 @@ logger = logging.getLogger()
 
 def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
     """This function manages the output of an image, drawing sources e.t.c."""
+    if args.fits and img is None:
+        # Issue #1 stop-gap: no call site can build the image array yet
+        # (blocked on tmolteno/disko#10), so fail here instead of letting
+        # tart_tools.api_imaging.save_fits_image() raise AttributeError.
+        abort_fits_not_implemented()
     image_title = f"{args.title}_{title}_{time_repr}"
     plt.title(image_title)
     if args.fits:
@@ -244,6 +250,11 @@ def main():
         print(f"spotless: Version {ver}")
         print("          (c) 2022-2026 Tim Molteno")
         sys.exit(0)
+
+    if ARGS.fits:
+        # Issue #1 stop-gap: --fits cannot succeed on any path until
+        # tmolteno/disko#10 lands, so fail before loading any data.
+        abort_fits_not_implemented()
 
     sphere = sphere_from_args(ARGS)
 

@@ -2,6 +2,8 @@
 
 ## 0.8.0
 
+* Fix #1: `--fits` now fails with a clear "not implemented" message (blocked on
+  tmolteno/disko#10) instead of an AttributeError traceback
 * Upgrade disko to >=1.4.4: blocked operator caps harmonic cache at 500 MB
 * Share immutable geometry arrays across sphere copies (88% less memory per copy)
 * Reuse scratch sphere in reconstruct_direct instead of per-source allocation
