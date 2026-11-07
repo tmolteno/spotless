@@ -25,6 +25,14 @@ spotless = "spotless.spotless_cli:main"
 gridless = "spotless.gridless_cli:main"
 spotless_calibrate = "spotless.spotless_calibrate_cli:main"
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    # healpy 1.20.1 sets array.dtype inside its compiled map2alm
+    # (_sphtools.pyx); the warning carries no reliable module name from
+    # the Cython frame, so match on the message text only.
+    "ignore:Setting the dtype on a NumPy array has been deprecated",
+]
+
 [dependency-groups]
 dev = [
     "flake8>=7.1.2",

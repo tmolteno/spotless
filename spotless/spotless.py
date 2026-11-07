@@ -172,6 +172,11 @@ class SpotlessBase(object):
         """
         logger.info(f"scale_to_power({sphere.pixels.shape}, {desired_power})")
         current_power = sphere.get_power()
+        if (not np.isfinite(current_power)) or current_power <= 0:
+            # An all-zero (or invalid) image has no scale: any factor
+            # leaves it unchanged, and dividing by zero would give NaN.
+            logger.warning(f"scale_to_power: current power is {current_power}, skipping scaling")
+            return
         scaling = np.sqrt(desired_power / current_power)
         sphere.pixels *= scaling
 
