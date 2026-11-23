@@ -91,7 +91,6 @@ ipython_config.py
 .python-version
 
 # uv
-uv.lock
 
 # LaTeX
 *.aux
