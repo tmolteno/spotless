@@ -439,7 +439,7 @@ wheels = [
 
 [[package]]
 name = "disko"
-version = "1.5.0"
+version = "1.5.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "angle-parser" },
@@ -461,9 +461,9 @@ dependencies = [
     { name = "tart-tools" },
     { name = "toolz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/83/b3/869041c0a9a6635f91c3a966a4c5979a0768642bc67929e5be9f19a04dba/disko-1.5.0.tar.gz", hash = "sha256:4284dbe6b9cf71fc2a1dc2c096f14023e4046e19a4c2ae60f273ae0bbc47fd31", size = 237153, upload-time = "2026-11-06T22:36:13.406Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/15/c4a9f4754b256a5f9886d1235aa285f51891dc703cfc53bb9734f81905fb/disko-1.5.2.tar.gz", hash = "sha256:6da634cea26444634694f965ed7587a46fa28fa3064e53690fc13e97b31b350e", size = 240153, upload-time = "2026-11-24T18:48:01.109Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4b/db/ed1a13d9e58284ba5d4b72bd7000ce6d65ff66ccbd941c1c92086216f39c/disko-1.5.0-py3-none-any.whl", hash = "sha256:02325889c65b2b298f49b1f2cf5e71d501d490b902dd6b15af9cd7175941dc2c", size = 146299, upload-time = "2026-11-06T22:36:11.972Z" },
+    { url = "https://files.pythonhosted.org/packages/15/11/15bbc86bd718c98b6f6370b044fa40720534ebef1c03b24310fa86ddb00d/disko-1.5.2-py3-none-any.whl", hash = "sha256:10e6da6c73d77c57ef5eab30665bcf62b35147bdd09a9d64f32d3477f131d1fe", size = 148133, upload-time = "2026-11-24T18:48:00.015Z" },
 ]
 
 [[package]]
@@ -1322,7 +1322,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "astropy", specifier = ">=4.3" },
-    { name = "disko", specifier = ">=1.4.4" },
+    { name = "disko", specifier = ">=1.5.2" },
     { name = "donfig", specifier = ">=0.8.1.post1,<0.9.0" },
     { name = "healpy", specifier = ">=1.15.0,<2.0.0" },
     { name = "matplotlib", specifier = ">=3.5.0,<4.0.0" },
