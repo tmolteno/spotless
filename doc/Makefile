@@ -15,7 +15,7 @@ clean:
 	rm -f gridless.png residual.png spotless.png spotless_direct.png
 	rm -f multimodel_gridless.png multimodel_residual.png multimodel_spotless.png multimodel_direct.png
 
-SPOTLESS_ARGS=--ms ../test_data/test.ms --SVG --healpix --fov 170 --res 20arcmin
+SPOTLESS_ARGS=--ms ../test_data/test.ms --PNG --healpix --fov 170deg --res 20arcmin
 images:
 	uv run spotless ${SPOTLESS_ARGS} --title 'spotless' --log spotless_run.txt
 	uv run spotless ${SPOTLESS_ARGS} --multimodel --title 'multimodel' --log multimodel_run.txt

@@ -21,20 +21,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from disko import DiSkO, disko_from_ms, sphere_args_parser, sphere_from_args
 from disko.ms_helper import get_array_location
-from tart.imaging import elaz
 from tart.operation import settings
 from tart_tools import api_handler, api_imaging
 
 from .fits_export import abort_fits_not_implemented
 from .multi_spotless import MultiSpotless
 from .sphere import sphere_copy
-from .spotless import Spotless, get_source_list
+from .spotless import Spotless
 
 logger = logging.getLogger()
 
 
-def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
-    """This function manages the output of an image, drawing sources e.t.c."""
+def handle_image(args, img, title, time_repr):
+    """This function manages the output of an image."""
     if args.fits and img is None:
         # Issue #1 stop-gap: no call site can build the image array yet
         # (blocked on tmolteno/disko#10), so fail here instead of letting
@@ -53,11 +52,6 @@ def handle_image(args, img, title, time_repr, src_list=None, sphere=None):
         fname = "{}.png".format(image_title)
         fpath = os.path.join(args.dir, fname)
         plt.savefig(fpath, dpi=300)
-        print("Generating {}".format(fname))
-    if args.SVG:
-        fname = f"{image_title}.svg"
-        fpath = os.path.join(args.dir, fname)
-        sphere.to_svg(fname=fname, show_grid=True, src_list=src_list, title=image_title)
         print("Generating {}".format(fname))
     if args.PDF:
         fname = "{}.pdf".format(image_title)
@@ -82,12 +76,6 @@ def main():
         required=False,
         default="https://tart.elec.ac.nz/signal",
         help="Telescope API server URL.",
-    )
-    parser.add_argument(
-        "--catalog",
-        required=False,
-        default="https://tart.elec.ac.nz/catalog",
-        help="Catalog API URL.",
     )
 
     data_group = parser.add_mutually_exclusive_group()
@@ -160,20 +148,6 @@ def main():
         "--PDF", action="store_true", help="Generate a PDF format image"
     )
     parser.add_argument(
-        "--SVG", action="store_true", help="Generate a SVG format image"
-    )
-    parser.add_argument(
-        "--show-sources",
-        action="store_true",
-        help="Show known sources on images (only works on PNG).",
-    )
-    parser.add_argument(
-        "--elevation",
-        type=float,
-        default=20.0,
-        help="Elevation limit for displaying sources (degrees)",
-    )
-    parser.add_argument(
         "--title", required=False, default="spotless", help="Prefix the output files."
     )
 
@@ -200,6 +174,15 @@ def main():
     )
 
     parser.add_argument(
+        "--threshold",
+        type=float,
+        default=1.0,
+        metavar="PERCENT",
+        help="Stop when a step removes less than this percentage of the residual"
+        " power at the start of the run",
+    )
+
+    parser.add_argument(
         "--save-model-json",
         required=False,
         default=None,
@@ -213,7 +196,16 @@ def main():
         help="Show the location of the model sources.",
     )
 
-    source_json = None
+    # --show-sources and --SVG used to be declared here. Both are done by
+    # disko_draw now, on the file --HDF writes, so give the old commands a
+    # clear pointer instead of argparse's bare "unrecognized arguments".
+    for option in ("--show-sources", "--SVG"):
+        if option in sys.argv:
+            parser.error(
+                f"{option} has moved to disko_draw: save the field of view with "
+                "--HDF (spotless --HDF fov.h5 ...), then "
+                "'disko_draw fov.h5 --show-sources --SVG out.svg'"
+            )
 
     ARGS = parser.parse_args()
 
@@ -279,13 +271,10 @@ def main():
 
         measurements = []
         for d in calib_info["data"]:
-            vis_json, source_json = d
+            vis_json = d[0]  # each entry is [vis_json, source_json]
             cv, timestamp = api_imaging.vis_calibrated(
                 vis_json, config, gains, phase_offsets, flag_list
             )
-            src_list = elaz.from_json(source_json, 0.0)
-        if not ARGS.show_sources:
-            src_list = None
         disko = DiSkO.from_cal_vis(cv)
         lat = config.get_lat()
         lon = config.get_lon()
@@ -330,13 +319,6 @@ def main():
             with open(ARGS.vis, "r") as json_file:
                 vis_json = json.load(json_file)
 
-        ts = api_imaging.vis_json_timestamp(vis_json)
-        if ARGS.show_sources:
-            cat_url = api.catalog_url(
-                lon=config.get_lon(), lat=config.get_lat(), datestr=ts.isoformat()
-            )
-            source_json = api.get_url(cat_url)
-
         print("Data Download Complete")
 
         cv, timestamp = api_imaging.vis_calibrated(
@@ -349,47 +331,43 @@ def main():
         height = config.get_alt()
 
     # CASAcore UVW is conjugated, so to make things consistent with data
-    # streaming off telescope we need the vis flipped about
-    if ARGS.ms:
-        pass  # disko.vis_arr = disko.vis_arr.conjugate()
-    elif ARGS.file:
+    # streaming off telescope we need the vis flipped about. Data from the API
+    # and saved snapshots of it are both loaded with DiSkO.from_cal_vis(), so
+    # both need it: without it the sources come out 180 deg off in azimuth.
+    if not ARGS.ms:
         disko.vis_arr = disko.vis_arr.conjugate()
-    else:
-        pass
 
     sphere.set_info(timestamp=timestamp, lon=lon, lat=lat, height=height)
 
     time_repr = "{:%Y_%m_%d_%H_%M_%S_%Z}".format(timestamp)
 
     # Processing
-    should_make_images = (
-        ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.SVG or ARGS.HDF
-    )
+    should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.HDF
 
     if ARGS.multimodel:
         spot = MultiSpotless(disko, sphere)
     else:
         spot = Spotless(disko, sphere)
 
-    src_list = get_source_list(source_json, el_limit=ARGS.elevation, jy_limit=1e4)
-
     if should_make_images:
         plt.figure(figsize=(6, 6))
-        spt = spot.display(
-            plt=plt, src_list=src_list, sphere=sphere, show_model=ARGS.show_model
-        )
-        handle_image(ARGS, None, "gridless", time_repr, src_list, sphere)
+        spot.display(plt=plt, src_list=None, sphere=sphere, show_model=ARGS.show_model)
+        handle_image(ARGS, None, "gridless", time_repr)
 
     if ARGS.beam:
         spot.beam(plt, nside)
-        handle_image(ARGS, None, "beam", time_repr, src_list, sphere)
+        handle_image(ARGS, None, "beam", time_repr)
 
     if ARGS.log:
         log_fh = open(ARGS.log, "w")
     else:
         log_fh = None
 
-    spot.deconvolute(logfile=log_fh, max_steps=ARGS.max_steps)
+    # The threshold is a fraction of the starting residual power; the option
+    # takes it as a percentage.
+    spot.deconvolute(
+        logfile=log_fh, max_steps=ARGS.max_steps, threshold=ARGS.threshold / 100.0
+    )
 
     if log_fh:
         log_fh.close()
@@ -397,23 +375,21 @@ def main():
     if should_make_images:
         residual_sphere = sphere_copy(sphere)
         spot.image_visibilities(spot.residual_vis, residual_sphere)
-        spot.display(plt, src_list, sphere, ARGS.show_model)
-        handle_image(ARGS, None, "residual", time_repr, src_list, residual_sphere)
+        spot.display(plt, None, sphere, ARGS.show_model)
+        handle_image(ARGS, None, "residual", time_repr)
 
     reconstructed_sphere, src_power, residual_power = spot.reconstruct()
     if should_make_images:
-        spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(ARGS, None, "spotless", time_repr, src_list, reconstructed_sphere)
+        spot.plot(plt, reconstructed_sphere, None, ARGS.show_model)
+        handle_image(ARGS, None, "spotless", time_repr)
     if ARGS.HDF:
         hdf_path = os.path.join(ARGS.dir, ARGS.HDF)
         reconstructed_sphere.to_hdf(hdf_path)
 
     reconstructed_sphere, src_power, residual_power = spot.reconstruct_direct()
     if should_make_images:
-        spot.plot(plt, reconstructed_sphere, src_list, ARGS.show_model)
-        handle_image(
-            ARGS, None, "spotless_direct", time_repr, src_list, reconstructed_sphere
-        )
+        spot.plot(plt, reconstructed_sphere, None, ARGS.show_model)
+        handle_image(ARGS, None, "spotless_direct", time_repr)
 
     model_dict = spot.model.to_dict()
     model_dict["time"] = timestamp.isoformat()

@@ -21,10 +21,10 @@ build:
 TART_ARGS=--ms test_data/test.ms --healpix --fov 160deg --res 120arcmin --debug
 #TART_ARGS=--file test_data/test_data.json --healpix --fov 160deg --res 30arcmin
 tart:
-	uv run spotless  ${TART_ARGS} --HDF tart.h5 --SVG --title tart
+	uv run spotless  ${TART_ARGS} --HDF tart.h5 --title tart
 
 ms:
-	uv run spotless ${TART_ARGS} --multimodel --HDF ms.hdf --SVG --title ms
+	uv run spotless ${TART_ARGS} --multimodel --HDF ms.hdf --title ms
 
 disko:
 	uv run disko ${TART_ARGS} --tikhonov --alpha 2 --SVG  --HDF disko.hdf --title disko

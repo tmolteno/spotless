@@ -1,5 +1,60 @@
 # Changes
 
+## Unreleased
+
+* Fix the deconvolution, which had found (almost) nothing since the move to disko
+  1.4.4: `DiSkO.image_visibilities()` became the adjoint of disko's forward model,
+  the conjugate of the kernel `PointSource.get_vis()` uses, so the dirty image
+  peaked 180 deg in azimuth from every source. `image_visibilities()` now gives it
+  the conjugated visibilities, and every image spotless makes goes through it,
+  including `reconstruct_direct()`
+* Start each source at the brightest pixel of the residual image, not the one
+  largest in magnitude. `get_peak()` searched the image as it is displayed,
+  magnitudes only, so once a fitted source left negative sidelobes deeper than
+  the peaks that remained, every step started at a hole. No source with a
+  positive amplitude removes any power there: the optimizer returned nothing,
+  and the deconvolution stopped with most of the residual still in it. Every
+  subset of the test measurement set tried stopped that way, and nothing else
+  stopped a run either, so with the hole gone they ran on to `--max-steps` until
+  the threshold below was added. `get_peak()` takes the signed image,
+  `get_peak(sphere, pixels)`
+* Stop when a step removes less than 1% of the residual power at the start of
+  the run. Both variants do, they share the loop; the source fitted in that step
+  stays in the model, and `--threshold` sets the percentage (0 turns it off). On
+  the test measurement set a deconvolution that stalled on a hole after 10
+  sources, with 53% of the power left, now stops after 25 with 29%, and at
+  20arcmin with 160 visibilities, where no source was found, after 24 with 11%.
+  `--multimodel` on 200 rows of the same set stops after 15 steps in under a
+  minute, but on the default 1000 it was still removing over 1% a step at step
+  25
+* Remove `--show-sources` (from `spotless` and `gridless`), with `--catalog` and
+  `--elevation`, which only existed to feed it: sources are drawn by `disko_draw`
+  on the file `--HDF` writes. Passing the flag now exits with a pointer to that
+  instead of argparse's "unrecognized arguments". This also takes out
+  `get_source_list()`, which had been crashing `--file` with a TypeError since
+  tart renamed one of its parameters
+* Remove `--SVG` for the same reason: `disko_draw` renders SVG from the `--HDF`
+  file, and passing it exits with the same pointer. It had not been writing
+  where it said either: the files went to the working directory, not `--dir`
+* Require disko >= 1.5.2. 1.5.0 raised an AttributeError under pylops 2.9, and
+  1.5.2 multiplies the harmonic blocks in float32, 8 to 29 times faster, and no
+  longer floors the block size at 256 rows, which made a 2.9 GB transient at
+  20arcmin resolution
+* Conjugate API data and `--vis` files like `--file` snapshots: they are loaded the
+  same way and need it. 9 of the 10 brightest sources in the test snapshot land
+  within a beam of a catalogued source with it, 2 without
+* Keep one back-projection operator per sphere instead of building one for every
+  image, so its harmonic blocks are built once per deconvolution rather than once
+  per call. The models are the same bit for bit; the test suite takes 47 s for
+  28 tests, from 107 s for 14
+* Test the deconvolution itself, which had no tests. A model source is found
+  where it was put, alone, as one of two, and with a hole in the residual deeper
+  than it, and so is a source injected into the measurement set; the snapshot's
+  sources match its catalog, and sources are found in the measurement set. Both
+  variants stop at the threshold, the image peaks at a model source, the next
+  source starts at its largest positive pixel, `reconstruct_direct()` is centred
+  on it, and the operator is reused
+
 ## 0.8.0
 
 * Fix #1: `--fits` now fails with a clear "not implemented" message (blocked on

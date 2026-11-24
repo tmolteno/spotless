@@ -150,8 +150,13 @@ subtracted from the residual:
 %
 The algorithm tracks the lowest residual power $E_{\text{best}}$
 achieved so far and terminates when $P = 3$ consecutive steps fail
-to improve on it. This patience-based criterion avoids premature
-convergence when the optimiser temporarily stalls.
+to improve on it, or when a step improves on it by less than
+$\tau E_0$, where $E_0$ is the residual power at the start of the
+run and $\tau = 0.01$. The patience-based criterion avoids premature
+convergence when the optimiser temporarily stalls. The threshold ends
+the run once the sources being found account for less than one percent
+of the initial residual power; without it a run continues to the step
+limit, since there is always another source to fit.
 
 The cost function in equation~\eqref{eq:step} is a smooth function of
 three parameters $(A, \theta, \phi)$. The optimisation is performed using
@@ -159,7 +164,10 @@ the L-BFGS-B algorithm~\cite{byrd1995}, a quasi-Newton method that
 supports bound constraints and uses a limited-memory Hessian
 approximation. An initial guess is obtained by imaging the current
 residual onto a HEALPix sphere~\cite{gorski2005} and locating the
-brightest pixel; the initial amplitude is set to $\max(A_0, 0.01)$
+brightest pixel, the largest one rather than the one largest in
+magnitude: a negative sidelobe of a source already in the model can be
+deeper than the peaks that remain, and no source with $A > 0$ removes
+power there. The initial amplitude is set to $\max(A_0, 0.01)$
 where $A_0$ is the peak pixel value.
 
 %-----------------------------------------------------------------------------
@@ -196,10 +204,10 @@ perturbed starting point.
 	\caption{Spotless Deconvolution}
 	\label{alg:spotless}
 	\begin{algorithmic}[1]
-		\State \textbf{Input:} Visibilities $V$, sphere $\mathcal{S}$, patience $P=3$
+		\State \textbf{Input:} Visibilities $V$, sphere $\mathcal{S}$, patience $P=3$, threshold $\tau = 0.01$
 		\State $\mathcal{M} \leftarrow \emptyset$
 		\State $V_{\text{res}} \leftarrow V$
-		\State $E_{\text{best}} \leftarrow E(V)$ \Comment{initial residual power}
+		\State $E_0 \leftarrow E(V)$; \quad $E_{\text{best}} \leftarrow E_0$ \Comment{initial residual power}
 		\State $\text{stall} \leftarrow 0$
 		\Repeat
 		\State Image $V_{\text{res}}$ onto $\mathcal{S}$
@@ -209,9 +217,11 @@ perturbed starting point.
 		\State $(A, \theta, \phi) \leftarrow x^*$
 		\State $E_{\text{new}} \leftarrow E(V_{\text{res}} - A^2 V_P(\theta, \phi))$
 		\If{$E_{\text{new}} < E_{\text{best}}$}
+		\State $\Delta E \leftarrow E_{\text{best}} - E_{\text{new}}$
 		\State $\text{stall} \leftarrow 0$; \quad $E_{\text{best}} \leftarrow E_{\text{new}}$
 		\State $\mathcal{M} \leftarrow \mathcal{M} \cup \{(A, \theta, \phi)\}$
 		\State $V_{\text{res}} \leftarrow V_{\text{res}} - A^2 V_P(\theta, \phi)$
+		\If{$\Delta E < \tau E_0$} \textbf{break} \EndIf
 		\Else
 		\State $\text{stall} \leftarrow \text{stall} + 1$
 		\If{$\text{stall} \geq P$} \textbf{break} \EndIf

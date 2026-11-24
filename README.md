@@ -58,7 +58,16 @@ Multispotless (--multimodel command line option) uses a better (but slower) sequ
 
 ### Termination Criterion
 
-Both spotless variants terminate when the power in the residual stops decreasing.
+Both spotless variants terminate when the power in the residual stops decreasing,
+when `--max-steps` is reached, or when a step removes less than 1% of the residual
+power at the start of the run (`--threshold`). The source fitted in that last step
+stays in the model.
+
+There is always another source to fit, since each one starts at the brightest point
+left in the residual image, so on real data it is the threshold that usually ends a
+run. Raise the threshold for a quicker run with fewer sources, or lower it for a
+lower residual. `--multimodel` keeps removing over 1% a step for longer, and on
+large data sets goes on to `--max-steps`.
 
 ## Results
 
@@ -76,8 +85,8 @@ tart_tools is available from standard python package repositories. Try:
     
 ## Running it on live data
 
-    spotless --api https://tart.elec.ac.nz/signal --display --show-sources
-    gridless --api https://tart.elec.ac.nz/signal --display --show-sources
+    spotless --api https://tart.elec.ac.nz/signal --display
+    gridless --api https://tart.elec.ac.nz/signal --display
 
 ## Command Line Usage
 
@@ -106,7 +115,6 @@ Spotless can read visibilities from three sources:
 ```
   --display             Show image interactively
   --PNG                 Save as PNG
-  --SVG                 Save as SVG
   --PDF                 Save as PDF
   --fits                Save as FITS (not implemented yet: exits with an
                         error until tmolteno/disko#10 lands, see issue #1)
@@ -126,25 +134,37 @@ Spotless can read visibilities from three sources:
 ### Other Flags
 
 ```
-  --show-sources        Overlay known sources from catalog
   --show-model          Show the model source locations
-  --elevation ELEV      Elevation limit for source display (degrees, default: 20)
   --beam                Generate a dirty beam image
   --max-steps N         Maximum deconvolution steps (default: 50)
+  --threshold PERCENT   Stop when a step removes less than this percentage of the
+                        residual power at the start of the run (default: 1)
   --log FILE            Save deconvolution statistics to FILE
   --version             Print version and exit
   --debug               Enable debug logging
 ```
 
+### Rendering with disko_draw
+
+`spotless` no longer writes SVG or overlays a source catalog. Save the field
+of view with `--HDF` and do both with `disko_draw`:
+
+```sh
+spotless --ms test_data/test.ms --healpix --fov 160deg --res 120arcmin --HDF fov.h5
+disko_draw fov.h5 --show-sources --SVG fov.svg
+```
+
+`--SVG` and `--show-sources` now exit with a pointer to this.
+
 ### Examples
 
 ```sh
-# Image a measurement set with MultiSpotless, save as SVG
+# Image a measurement set with MultiSpotless, save as PNG
 spotless --ms test_data/test.ms --healpix --fov 160deg --res 120arcmin \
-    --multimodel --SVG --title my_source
+    --multimodel --PNG --title my_source
 
 # Live all-sky imaging from the TART telescope
-spotless --api https://tart.elec.ac.nz/signal --display --show-sources \
+spotless --api https://tart.elec.ac.nz/signal --display \
     --healpix --fov 180deg --res 60arcmin
 
 # Calibrate using the spotless model

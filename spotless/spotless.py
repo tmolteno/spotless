@@ -19,21 +19,14 @@ import logging
 
 import healpy as hp
 import numpy as np
+from disko import DiSkOOperator, vis_to_real
 from scipy.optimize import minimize
-from tart.imaging import elaz
 
 from .model import Model
 from .source import PointSource
 from .sphere import get_peak, sphere_copy
 
 logger = logging.getLogger(__name__)
-
-
-def get_source_list(source_json, el_limit, jy_limit):
-    src_list = []
-    if source_json is not None:
-        src_list = elaz.from_json(source_json, el_limit=el_limit, jy_limit=jy_limit)
-    return src_list
 
 
 class SpotlessBase(object):
@@ -46,13 +39,49 @@ class SpotlessBase(object):
         self.model = Model()
         self.working_nside = 20
 
-        # Pre-warm the harmonic cache so that subsequent calls to
-        # image_visibilities() with this sphere (or copies) are fast.
-        _temp = sphere_copy(self.sphere)
-        self.disko.image_visibilities(self.residual_vis, _temp)
+        # The back-projection operator is built on first use and then kept,
+        # see _back_projection().
+        self._operator = None
+        self._operator_arrays = None
+        self._operator_frequency = None
+
+    def _back_projection(self, sphere):
+        """disko's measurement operator for this sphere, built once and reused.
+
+        Its harmonic blocks depend only on the baselines, the frequency and the
+        sphere's pixel geometry, none of which change while a deconvolution
+        runs, but DiSkO.image_visibilities() builds a new operator, and so new
+        blocks, on every call. This one is rebuilt only when one of those
+        inputs is a different object: sphere_copy() shares the geometry arrays,
+        so copies of the sphere reuse it. The inputs are kept beside it so that
+        an identity cannot be reused by another array.
+        """
+        arrays = (self.disko.u_arr, self.disko.v_arr, self.disko.w_arr,
+                  sphere.l, sphere.m, sphere.n_minus_1, sphere.pixel_areas)
+        if (self._operator is None
+                or self._operator_frequency != self.disko.frequency
+                or any(a is not b for a, b in zip(arrays, self._operator_arrays))):
+            self._operator = DiSkOOperator(
+                self.disko.u_arr, self.disko.v_arr, self.disko.w_arr,
+                self.disko.vis_to_data(), [self.disko.frequency], sphere,
+            )
+            self._operator_arrays = arrays
+            self._operator_frequency = self.disko.frequency
+        return self._operator
 
     def image_visibilities(self, vis_arr, sphere):
         """Create an image from visibilities
+
+        This is the back-projection matched to the model: for the visibilities
+        of a PointSource it peaks at that source, which is what
+        estimate_initial_point_source() relies on.
+
+        PointSource.get_vis() predicts exp(-j.w.theta). disko's operator is
+        the adjoint of a forward model with the conjugate kernel, exp(+j.w.theta),
+        so applying it to visibilities v returns sum_i conj(v_i) exp(+j.w.theta_i):
+        the conjugate of what is needed, peaking 180 deg in azimuth from a model
+        source. Applying it to the conjugated visibilities gives the real part
+        of sum_i v_i exp(+j.w.theta_i) instead.
 
         Args:
 
@@ -61,7 +90,10 @@ class SpotlessBase(object):
             sphere  (Sphere):   The sphere object that will contain the image.
         """
         assert len(vis_arr) == len(self.disko.u_arr)
-        return self.disko.image_visibilities(vis_arr, sphere)
+        vis = np.conj(vis_arr)
+        pixels = self._back_projection(sphere).T @ vis_to_real(vis)
+        sphere.set_visible_pixels(np.abs(pixels))
+        return pixels.reshape(-1, 1)
 
     def plot(self, plt, sphere, src_list, show_model):
         sphere.plot(plt, src_list)
@@ -81,19 +113,23 @@ class SpotlessBase(object):
                 sphere.plot_x(plt, s.el_r, s.az_r)
 
     def display(self, plt, src_list, sphere, show_model):
-        _ = self.disko.image_visibilities(self.residual_vis, sphere)
+        self.image_visibilities(self.residual_vis, sphere)
         self.plot(plt, sphere, src_list, show_model)
 
     def beam(self, plt, sphere):
         self.image_visibilities(np.ones_like(self.residual_vis), sphere)
         self.plot(plt, sphere, src_list=None, show_model=False)
 
-    def deconvolute(self, logfile=None, max_steps=50):
+    def deconvolute(self, logfile=None, max_steps=50, threshold=0.01):
         """Run the deconvolution.
 
         Args:
             logfile: Optional file handle to write progress and statistics.
             max_steps: Maximum number of deconvolution steps (default 50).
+            threshold: Stop once a step removes less than this fraction of the
+                residual power at the start of the run (default 0.01). The source
+                fitted in that step stays in the model. 0 leaves stopping to the
+                steps that do not improve the residual, and to max_steps.
         """
 
         def _emit(msg):
@@ -104,7 +140,8 @@ class SpotlessBase(object):
 
         stall_count = 0
         patience = 3  # extra steps after first non-improving step
-        best_power = self.power(self.residual_vis)  # initial residual power
+        start_power = self.power(self.residual_vis)  # initial residual power
+        best_power = start_power
 
         for i in range(max_steps):
             mod, power, p0 = self.step()
@@ -119,6 +156,14 @@ class SpotlessBase(object):
                     f"  nfev={self._opt_nfev}  nit={self._opt_nit}"
                     f"  converged={self._opt_success}"
                 )
+                if dp < threshold * start_power:
+                    _emit(
+                        f"  Converged: step {i} removed"
+                        f" {100 * dp / start_power:.2f}% of the residual power at the"
+                        f" start ({start_power:.3f}), under the"
+                        f" {100 * threshold:g}% threshold."
+                    )
+                    break
             else:
                 stall_count += 1
                 _emit(
@@ -182,7 +227,7 @@ class SpotlessBase(object):
 
     def pixel_power(self, vis):
         sphere = sphere_copy(self.sphere)
-        self.disko.image_visibilities(vis, sphere)
+        self.image_visibilities(vis, sphere)
         return sphere.get_power()
 
     def vis_power(self, vis):
@@ -210,8 +255,11 @@ class SpotlessBase(object):
         force search over the surface of the sphere
         """
         sphere = sphere_copy(self.sphere)
-        self.image_visibilities(vis, sphere)
-        a_0, el_0, az_0 = get_peak(sphere)
+        # The signed image: sphere.pixels holds only its magnitude, and the
+        # next source has to start at the largest positive pixel, not the
+        # largest in magnitude (see get_peak()).
+        pixels = self.image_visibilities(vis, sphere)
+        a_0, el_0, az_0 = get_peak(sphere, pixels)
         p0 = self.power(vis)
         logger.info(f"Peak: {a_0} vis_pwr={p0} {el_0}")
         return a_0, el_0, az_0, p0
@@ -244,7 +292,7 @@ class SpotlessBase(object):
         for src in self.model:
             src_vis = self.get_src_vis(src)
 
-            self.disko.image_visibilities(src_vis, scratch)
+            self.image_visibilities(src_vis, scratch)
 
             # Threshold the scratch to be the central peak
             smap = np.abs(scratch.pixels)

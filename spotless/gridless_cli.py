@@ -14,18 +14,17 @@ from importlib.metadata import version as pkg_version
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tart.imaging import elaz
 from tart.operation import settings
 from tart_tools import api_handler, api_imaging
 
 from .fits_export import abort_fits_not_implemented
-from .spotless import Spotless, get_source_list
+from .spotless import Spotless
 
 logger = logging.getLogger()
 
 
-def handle_image(args, img, title, time_repr, src_list=None):
-    """This function manages the output of an image, drawing sources e.t.c."""
+def handle_image(args, img, title, time_repr):
+    """This function manages the output of an image."""
     if args.fits and img is None:
         # Issue #1 stop-gap: no call site can build the image array yet
         # (blocked on tmolteno/disko#10), so fail here instead of letting
@@ -68,13 +67,6 @@ def main():
     )
 
     parser.add_argument(
-        "--catalog",
-        required=False,
-        default="https://tart.elec.ac.nz/catalog",
-        help="Catalog API URL.",
-    )
-
-    parser.add_argument(
         "--file",
         required=False,
         default=None,
@@ -103,12 +95,6 @@ def main():
     parser.add_argument("--beam", action="store_true", help="Generate a gridless beam.")
 
     parser.add_argument(
-        "--elevation",
-        type=float,
-        default=20.0,
-        help="Elevation limit for displaying sources (degrees)",
-    )
-    parser.add_argument(
         "--display", action="store_true", help="Display Image to the user"
     )
     parser.add_argument(
@@ -120,11 +106,6 @@ def main():
     parser.add_argument(
         "--PDF", action="store_true", help="Generate a PDF format image"
     )
-    parser.add_argument(
-        "--show-sources",
-        action="store_true",
-        help="Show known sources on images (only works on PNG).",
-    )
 
     parser.add_argument("--title", required=False, default="", help="Prefix the title.")
 
@@ -135,7 +116,15 @@ def main():
         "--debug", action="store_true", help="Display debugging information"
     )
 
-    source_json = None
+    # --show-sources used to be declared here. Sources are drawn with disko_draw
+    # now, on the file spotless --HDF writes, so give the old command a clear
+    # pointer instead of argparse's bare "unrecognized arguments".
+    if "--show-sources" in sys.argv:
+        parser.error(
+            "--show-sources has moved to disko_draw: save the field of view with "
+            "--HDF (spotless --HDF fov.h5 ...), then "
+            "'disko_draw fov.h5 --show-sources --SVG out.svg'"
+        )
 
     ARGS = parser.parse_args()
 
@@ -199,13 +188,10 @@ def main():
 
         measurements = []
         for d in calib_info["data"]:
-            vis_json, source_json = d
+            vis_json = d[0]  # each entry is [vis_json, source_json]
             cv, timestamp = api_imaging.vis_calibrated(
                 vis_json, config, gains, phase_offsets, flag_list
             )
-            src_list = elaz.from_json(source_json, 0.0)
-        if not ARGS.show_sources:
-            src_list = None
     else:
         logger.info("Getting Data from API: {}".format(ARGS.api))
 
@@ -219,10 +205,6 @@ def main():
         else:
             with open(ARGS.vis, "r") as json_file:
                 vis_json = json.load(json_file)
-
-        ts = api_imaging.vis_json_timestamp(vis_json)
-        if ARGS.show_sources:
-            source_json = api.get_url(api.catalog_url(config, datestr=ts.isoformat()))
 
         logger.info("Data Download Complete")
 
@@ -241,13 +223,11 @@ def main():
 
     spot = Spotless(cv)
 
-    src_list = get_source_list(source_json, el_limit=ARGS.elevation, jy_limit=1e4)
-
     if should_make_images:
         nside = 2**ARGS.nside
-        spt = spot.display(plt, src_list, nside, False)
-        handle_image(ARGS, None, "" + ARGS.title, time_repr, src_list)
+        spt = spot.display(plt, None, nside, False)
+        handle_image(ARGS, None, "" + ARGS.title, time_repr)
 
     if ARGS.beam:
         spot.beam(plt, nside)
-        handle_image(ARGS, None, "dirty", "beam", src_list)
+        handle_image(ARGS, None, "dirty", "beam")
