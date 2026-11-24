@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 0.9.0
 
 * Fix the deconvolution, which had found (almost) nothing since the move to disko
   1.4.4: `DiSkO.image_visibilities()` became the adjoint of disko's forward model,
