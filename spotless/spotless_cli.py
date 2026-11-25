@@ -24,6 +24,7 @@ from disko.ms_helper import get_array_location
 from tart.operation import settings
 from tart_tools import api_handler, api_imaging
 
+from .beam import load_beam
 from .fits_export import abort_fits_not_implemented
 from .multi_spotless import MultiSpotless
 from .sphere import sphere_copy
@@ -127,7 +128,21 @@ def main():
         help="Use the SPOTLESS algorithm with multi-dimensional model.",
     )
 
-    parser.add_argument("--beam", action="store_true", help="Generate a gridless beam.")
+    parser.add_argument(
+        "--beam",
+        nargs="?",
+        const="tart",
+        default=None,
+        metavar="BEAM",
+        help="Antenna beam pattern for the model: 'tart' for the built-in TART "
+        "beam, or a JSON file holding a tart_beam beam or {el, az, gain} samples "
+        "to fit. Sources are then fitted with the flux they have before the beam",
+    )
+    parser.add_argument(
+        "--psf",
+        action="store_true",
+        help="Image the synthesised beam: the response to a source at the zenith",
+    )
 
     parser.add_argument(
         "--display", action="store_true", help="Display Image to the user"
@@ -248,6 +263,16 @@ def main():
         # tmolteno/disko#10 lands, so fail before loading any data.
         abort_fits_not_implemented()
 
+    # Loaded before the data: a beam that cannot be loaded is a mistake on the
+    # command line, and need not wait for the telescope.
+    beam = None
+    if ARGS.beam is not None:
+        try:
+            beam = load_beam(ARGS.beam)
+        except ValueError as e:
+            parser.error(f"--beam: {e}")
+        logger.info(f"Beam: {beam}")
+
     sphere = sphere_from_args(ARGS)
 
     if ARGS.file:
@@ -345,18 +370,24 @@ def main():
     should_make_images = ARGS.display or ARGS.PNG or ARGS.fits or ARGS.PDF or ARGS.HDF
 
     if ARGS.multimodel:
-        spot = MultiSpotless(disko, sphere)
+        spot = MultiSpotless(disko, sphere, beam=beam)
     else:
-        spot = Spotless(disko, sphere)
+        spot = Spotless(disko, sphere, beam=beam)
 
     if should_make_images:
         plt.figure(figsize=(6, 6))
         spot.display(plt=plt, src_list=None, sphere=sphere, show_model=ARGS.show_model)
         handle_image(ARGS, None, "gridless", time_repr)
 
-    if ARGS.beam:
-        spot.beam(plt, nside)
+    # Both of these replace the pixels of the sphere they are given, and the
+    # main sphere's are still to be imaged.
+    if ARGS.beam is not None:
+        spot.beam_pattern(plt, sphere_copy(sphere))
         handle_image(ARGS, None, "beam", time_repr)
+
+    if ARGS.psf:
+        spot.psf(plt, sphere_copy(sphere))
+        handle_image(ARGS, None, "psf", time_repr)
 
     if ARGS.log:
         log_fh = open(ARGS.log, "w")
@@ -393,6 +424,9 @@ def main():
 
     model_dict = spot.model.to_dict()
     model_dict["time"] = timestamp.isoformat()
+    if spot.beam is not None:
+        # The sources' fluxes are corrected for this, so say which it was.
+        model_dict["beam"] = spot.beam.to_dict()
     if ARGS.display:
         text = json.dumps(model_dict, sort_keys=True, indent=4, ensure_ascii=True)
         logger.info("Model {}".format(text))

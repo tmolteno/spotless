@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpotlessBase(object):
-    def __init__(self, disko, sphere):
+    def __init__(self, disko, sphere, beam=None):
         self.disko = disko
         self.sphere = sphere
         self.el_threshold_r = sphere.el_min_r
@@ -38,6 +38,9 @@ class SpotlessBase(object):
         self.residual_vis = np.zeros_like(self.vis_arr) + self.vis_arr
         self.model = Model()
         self.working_nside = 20
+        # An antenna beam pattern (spotless.beam.BeamPattern). None is an
+        # antenna that responds equally over the whole sky.
+        self.beam = beam
 
         # The back-projection operator is built on first use and then kept,
         # see _back_projection().
@@ -116,8 +119,22 @@ class SpotlessBase(object):
         self.image_visibilities(self.residual_vis, sphere)
         self.plot(plt, sphere, src_list, show_model)
 
-    def beam(self, plt, sphere):
+    def psf(self, plt, sphere):
+        """Image the synthesised beam: the response to a unit source at the zenith.
+
+        image_visibilities() replaces the pixels of the sphere it is given, so
+        pass a sphere_copy() unless that is wanted.
+        """
         self.image_visibilities(np.ones_like(self.residual_vis), sphere)
+        self.plot(plt, sphere, src_list=None, show_model=False)
+
+    def beam_pattern(self, plt, sphere):
+        """Image the antenna beam pattern over a sphere.
+
+        set_visible_pixels() replaces the pixels of the sphere it is given, so
+        pass a sphere_copy() unless that is wanted.
+        """
+        sphere.set_visible_pixels(self.beam.gain(sphere.el_r, sphere.az_r))
         self.plot(plt, sphere, src_list=None, show_model=False)
 
     def deconvolute(self, logfile=None, max_steps=50, threshold=0.01):
@@ -266,9 +283,35 @@ class SpotlessBase(object):
 
     def get_src_vis(self, src):
         """Return the visibility from a single point source
-        TODO Incorporate the telescope beam (fringe washing)
+
+        Through the antenna beam, if there is one: what a source of flux a*a in
+        that direction looks like to the antennas. Every prediction of model
+        visibilities comes through here or through model_vis(), so this is the
+        one place the beam enters the model. Fringe washing is not modelled.
         """
-        return src.get_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
+        vis = src.get_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
+        if self.beam is not None:
+            vis = vis * self.beam.gain(src.el, src.az)
+        return vis
+
+    def model_vis(self, model):
+        """Return the visibilities of a model's sources, through the beam if
+        there is one.
+
+        The same as Model.model_vis(), apart from the beam. MultiSpotless
+        refits all the sources together and has to see the beam on every one.
+        """
+        vis = np.zeros_like(self.disko.u_arr, dtype=np.complex64)
+        objects = list(model)
+        if self.beam is not None and objects:
+            gains = self.beam.gain([src.el for src in objects],
+                                   [src.az for src in objects])
+        else:
+            gains = np.ones(len(objects))
+        for src, gain in zip(objects, gains):
+            vis += gain * src.get_vis(self.disko.u_arr, self.disko.v_arr,
+                                      self.disko.w_arr)
+        return vis
 
     def reconstruct_direct(self):
         """Reconstruct the image
@@ -327,8 +370,8 @@ class SpotlessBase(object):
 
 
 class Spotless(SpotlessBase):
-    def __init__(self, disko, sphere):
-        super(Spotless, self).__init__(disko, sphere)
+    def __init__(self, disko, sphere, beam=None):
+        super(Spotless, self).__init__(disko, sphere, beam=beam)
 
     def step(self):
         """

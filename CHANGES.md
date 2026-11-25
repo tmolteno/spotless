@@ -1,5 +1,23 @@
 # Changes
 
+## Unreleased
+
+* `--beam` takes an antenna beam pattern, and the model is fitted through it, so
+  that sources get the flux they have before the beam. It was a flag that tried
+  to draw the synthesised beam. The values are the ones tartball takes: `tart`
+  (or a bare `--beam`) for the built-in TART beam from tart-beam, a beam saved
+  by `tart_beam.Beam.to_json()`, or a list of `{el, az, gain}` samples, which is
+  fitted when loaded. Both variants use it, the model JSON records it, and the
+  `beam` image shows the pattern. The gain is looked up from a table, because
+  evaluating the beam takes most of a millisecond a direction, and is not taken
+  below 1% above the horizon
+* `--psf` images the synthesised beam. `--beam` was meant to, and had raised a
+  NameError since 2022
+* Require tart-beam >= 0.2.0 and scipy >= 1.9
+* Test the beam: loading it, the lookup against the beam it came from, both
+  variants' models through it, a source in the taper getting its flux back, and
+  the two options
+
 ## 0.9.0
 
 * Fix the deconvolution, which had found (almost) nothing since the move to disko

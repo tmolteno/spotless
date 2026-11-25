@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class MultiSpotless(Spotless):
-    def __init__(self, disko, sphere):
-        super(MultiSpotless, self).__init__(disko, sphere)
+    def __init__(self, disko, sphere, beam=None):
+        super(MultiSpotless, self).__init__(disko, sphere, beam=beam)
 
     def step(self):
         """
@@ -27,9 +27,7 @@ class MultiSpotless(Spotless):
         """
         d_el = self.disko.get_beam_width().radians() / 2
 
-        m_vis = self.model.model_vis(
-            self.disko.u_arr, self.disko.v_arr, self.disko.w_arr
-        )
+        m_vis = self.model_vis(self.model)
 
         a_0, el_0, az_0, p0 = self.estimate_initial_point_source(self.vis_arr - m_vis)
 
@@ -105,9 +103,7 @@ class MultiSpotless(Spotless):
 
         self.model = Model.from_vector(fmin.x)
 
-        self.residual_vis = self.vis_arr - self.model.model_vis(
-            self.disko.u_arr, self.disko.v_arr, self.disko.w_arr
-        )
+        self.residual_vis = self.vis_arr - self.model_vis(self.model)
 
         return self.model, residual_power, p0
 
@@ -116,5 +112,5 @@ class MultiSpotless(Spotless):
         Find the power in the residual
         """
         mod = Model.from_vector(x)
-        m_vis = mod.model_vis(self.disko.u_arr, self.disko.v_arr, self.disko.w_arr)
+        m_vis = self.model_vis(mod)
         return self.power(self.vis_arr - m_vis)

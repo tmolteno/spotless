@@ -135,7 +135,10 @@ Spotless can read visibilities from three sources:
 
 ```
   --show-model          Show the model source locations
-  --beam                Generate a dirty beam image
+  --beam [BEAM]         Antenna beam pattern for the model: 'tart' for the built-in
+                        TART beam, or a JSON file (see Beam patterns)
+  --psf                 Image the synthesised beam: the response to a source at
+                        the zenith
   --max-steps N         Maximum deconvolution steps (default: 50)
   --threshold PERCENT   Stop when a step removes less than this percentage of the
                         residual power at the start of the run (default: 1)
@@ -155,6 +158,35 @@ disko_draw fov.h5 --show-sources --SVG fov.svg
 ```
 
 `--SVG` and `--show-sources` now exit with a pointer to this.
+
+### Beam patterns
+
+By default every antenna is taken to respond equally over the whole sky. `--beam`
+gives the model an antenna beam pattern instead, so that sources are fitted with
+the flux they have before the beam:
+
+```sh
+spotless --ms test_data/test.ms --healpix --fov 160deg --res 120arcmin --beam tart
+```
+
+`--beam` takes the same values as `tartball`, which reads them from
+[tart-beam](https://github.com/tart-telescope/beams):
+
+| Value | Meaning |
+|-------|---------|
+| `tart` | The built-in TART beam: roughly uniform above 10° elevation, falling to zero at the horizon |
+| A JSON file | A beam saved by `tart_beam.Beam.to_json()`, or a list of `{el, az, gain}` samples in degrees, which is fitted when loaded |
+
+A bare `--beam` means `tart`.
+
+- Both `spotless` and `--multimodel` fit through the beam.
+- The model JSON records the beam under `"beam"`. The images stay as the
+  instrument sees them, so that the model and the residual still add up to the
+  dirty image.
+- The gain is not taken below 1% above the horizon. The beam falls to zero
+  there, and a flux corrected for it would be dominated by noise.
+- With `--PNG` or `--PDF`, the `beam` image shows the pattern over the field of
+  view. The synthesised beam, which `--beam` used to stand for, is `--psf`.
 
 ### Examples
 
@@ -228,7 +260,6 @@ Generate example images and convert to PNG:
 ## TODO
 
 * Add Gaussian Source Model
-* Make explicit the antenna model (gain as a function of angular coordinates). We are assuming it is hemispherical here.
 * Prove the relationship between power in the image and visibilty amplitudes. This might only work when the image 
   tends towards a random one. But this is OK since as we remove the sources the residual becomes more and more random.
 * Run an MCMC on the multimodel option to estimate uncertainty in the model. Then use this uncertainty as a stopping criterion (when new model components no longer have certain amplitude or position)

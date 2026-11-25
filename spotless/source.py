@@ -58,8 +58,10 @@ class PointSource(object):
 
             The Smirnov papers on the RIME provide a formalism that is easier to derive algorithms for.
 
-            TODO: Use an antenna model (for the whole telescope initially, and then eventually for each antenna)
-            to modify the source amplitude (self.a) and predict the visibilities from a low-elevation source.
+            The antennas are taken to respond equally in every direction. The
+            antenna beam, if there is one, is applied to this by
+            SpotlessBase.get_src_vis(), which is where a direction-dependent
+            gain belongs: a source on its own does not know the telescope.
         '''
         l, m, n = sphere.elaz2lmn(self.el, self.az)
 

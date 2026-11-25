@@ -140,7 +140,9 @@ $i = 0, 1, \dots$ solves:
 \end{equation}
 %
 where $V_P(\theta, \phi)$ is the unit-amplitude point-source visibility
-from equation~\eqref{eq:ptvis}. The source is added to the model and
+from equation~\eqref{eq:ptvis}, multiplied by the antenna beam pattern
+$B(\theta, \phi)$ where one is given, so that $A$ is the flux a source
+has before the beam. The source is added to the model and
 subtracted from the residual:
 %
 \begin{align}
@@ -432,10 +434,13 @@ Spotless offers several advantages over traditional CLEAN-based methods:
 	      collection of point sources. Extended emission is not well
 	      represented. Future work could incorporate Gaussian or
 	      shapelet source models.
-	\item \textbf{Antenna beam.} The current implementation assumes an
-	      isotropic hemispherical antenna response. Incorporating a
-	      direction-dependent beam model would improve accuracy,
-	      particularly at low elevations.
+	\item \textbf{Antenna beam.} The antennas are taken to respond
+	      equally in every direction unless a beam pattern is given, as a
+	      truncated spherical-harmonic series from \texttt{tart-beam}. The
+	      model is then fitted through it, and the fitted fluxes are those
+	      the sources have before the beam. The pattern is the same for
+	      every antenna and does not depend on frequency or polarisation,
+	      and fringe washing is not modelled.
 	\item \textbf{Uncertainty quantification.} Running a Markov Chain
 	      Monte Carlo (MCMC) sampler on the MultiSpotless model would
 	      provide uncertainty estimates for source parameters and a
