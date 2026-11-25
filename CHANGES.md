@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 0.10.0
 
 * `--beam` takes an antenna beam pattern, and the model is fitted through it, so
   that sources get the flux they have before the beam. It was a flag that tried
